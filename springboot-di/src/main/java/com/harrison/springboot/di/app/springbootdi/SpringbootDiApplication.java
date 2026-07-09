@@ -1,4 +1,4 @@
-package com.harrison.springboot.di.app.springboot_di;
+package com.harrison.springboot.di.app.springbootdi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
