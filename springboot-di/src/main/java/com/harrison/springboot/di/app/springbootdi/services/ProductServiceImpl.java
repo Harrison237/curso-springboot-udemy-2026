@@ -5,13 +5,26 @@ import java.util.List;
 import com.harrison.springboot.di.app.springbootdi.models.Product;
 import com.harrison.springboot.di.app.springbootdi.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    @Autowired
+    //@Autowired
+    //@Qualifier("productList")
     private ProductRepository repository;
+
+    //@Autowired
+    //public void setRepository(ProductRepository repository) {
+    //    this.repository = repository;
+    //}
+
+    // Cuando se inyecta por el constructor no hace falta utilizar el @Autowired ya que se hace de forma automática
+    // @Qualifier tiene prioridad por encima de @Primary
+    public ProductServiceImpl(@Qualifier("productList") ProductRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public List<Product> findAll() {

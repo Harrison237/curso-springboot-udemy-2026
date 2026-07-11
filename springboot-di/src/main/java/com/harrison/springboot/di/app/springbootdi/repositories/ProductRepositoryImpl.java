@@ -4,9 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.harrison.springboot.di.app.springbootdi.models.Product;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
-@Repository
+// Se puede asignar nombre al repositorio para inyectarlo mediante @Qualifier
+@Primary
+@Repository("productList")
 public class ProductRepositoryImpl implements ProductRepository {
     private List<Product> data;
 
