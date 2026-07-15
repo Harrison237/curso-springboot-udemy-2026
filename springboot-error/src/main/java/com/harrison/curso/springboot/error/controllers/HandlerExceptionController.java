@@ -1,8 +1,10 @@
 package com.harrison.curso.springboot.error.controllers;
 
+import com.harrison.curso.springboot.error.exceptions.UserNotFoundException;
 import com.harrison.curso.springboot.error.models.Error;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -43,4 +45,16 @@ public class HandlerExceptionController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(error);
     }
 
+    @ExceptionHandler({NullPointerException.class,
+            HttpMessageNotWritableException.class,
+            UserNotFoundException.class})
+    public Map<String, Object> userNotFoundException(Exception ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("date", new Date());
+        error.put("error", "Usuario o rol no existe");
+        error.put("message", ex.getMessage());
+        error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+        return error;
+    }
 }
