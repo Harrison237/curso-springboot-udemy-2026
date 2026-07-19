@@ -31,8 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-.idea/
-.proxyai/
-.mvn/
-**/mvnw
-**/mvnw.cmd
