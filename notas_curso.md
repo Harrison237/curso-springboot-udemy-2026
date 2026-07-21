@@ -11,3 +11,15 @@ Separación de Pointcuts en clase aparte
     - Si el Pointcut hace parte del mismo paquete del aspecto se llama con <clase>.<metodo>. Si es parte de otro paquete se debe llamar con <ruta.al.paquete>.<clase>.<metodo>
 
 Cierre de sección 8.
+
+20-07-2026
+
+Inicio de sección 9 - Hibernate ORM y JPA
+
+Creación de proyecto para sección de jpa
+Creación y configuración de base de datos para sección
+Creación de CrudRepository con acciones básicas para tabla person
+Configuración de properties básicas en application.properties y habilitación de creación de estructura automática mediante hibernate
+Población de datos en tabla person con datos de la clase 123
+
+Veo varias similitudes con TypeORM, por lo que no he encontrado mayor dificultad hasta el momento.

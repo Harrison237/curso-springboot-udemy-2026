@@ -1,0 +1,21 @@
+CREATE USER 'springboot'@'%' IDENTIFIED BY 'sasa1234';
+GRANT ALL PRIVILEGES ON *.* TO 'springboot'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+// Por si hay problemas con la creación de la contraseña
+
+SET GLOBAL validate_password.policy = LOW;
+SET GLOBAL validate_password.length = 4;
+
+// Verificación
+SELECT user, host FROM mysql.user;
+
+// Habilitar conexión remota
+// MySQL config
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+cambiar bind-address = 127.0.0.1 por bind-address = 0.0.0.0
+sudo systemctl restart mysql
+
+// Configurar firewall
+sudo ufw allow 3306/tcp
+sudo ufw reload
