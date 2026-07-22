@@ -23,3 +23,10 @@ Configuración de properties básicas en application.properties y habilitación 
 Población de datos en tabla person con datos de la clase 123
 
 Veo varias similitudes con TypeORM, por lo que no he encontrado mayor dificultad hasta el momento.
+
+21-07-2026
+
+Verificación de población en base de datos y cambio en parámetro de properties para solo aplicar updates y que no se cree la bd desde cero cada que se inicia la aplicación
+Creación de consultas personalizadas con @Query y con los nombres reservados dentro del PersonRepository
+
+- Hay que estudiar los nombres reservados para las consultas mediante los nombres de los métodos en la interfaz, esto en Hibernate que es el ORM.

@@ -19,3 +19,11 @@ sudo systemctl restart mysql
 // Configurar firewall
 sudo ufw allow 3306/tcp
 sudo ufw reload
+
+// Datos para poblar la bd
+
+INSERT INTO person (name, lastname, programming_language) VALUES ('Andres', 'Guzman', 'Java');
+INSERT INTO person (name, lastname, programming_language) VALUES ('Pepe', 'Doe', 'Python');
+INSERT INTO person (name, lastname, programming_language) VALUES ('John', 'Dow', 'JavaScript');
+INSERT INTO person (name, lastname, programming_language) VALUES ('Maria', 'Roe', 'Java');
+INSERT INTO person (name, lastname, programming_language) VALUES ('Josefa', 'Rae', 'Java');
