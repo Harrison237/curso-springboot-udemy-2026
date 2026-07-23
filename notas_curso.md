@@ -30,3 +30,17 @@ Verificación de población en base de datos y cambio en parámetro de propertie
 Creación de consultas personalizadas con @Query y con los nombres reservados dentro del PersonRepository
 
 - Hay que estudiar los nombres reservados para las consultas mediante los nombres de los métodos en la interfaz, esto en Hibernate que es el ORM.
+
+22-07-2026
+
+Recuperación de un único objeto mediante consultas por Id
+Consultas para recuperación de un único objeto
+Uso de Optional para verificar que el objeto que llega desde el Repository existe
+Uso de referencia de nombre dentro del repositorio para consultas personalizadas
+Recuperación parcial de un objeto mediante seleccioń en @Query
+
+Sigo pensando que es bastante similar a TypeORM, las querys por nombre de método son bastante potentes y un buen reemplazo al QueryBuilder de TypeORM.
+Igual hay que ver cómo se consiguen objetos mediante joins
+
+Leer la siguiente entrada de spring data jpa para referencia consultas por nombre de método
+https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
