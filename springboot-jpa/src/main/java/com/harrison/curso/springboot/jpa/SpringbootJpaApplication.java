@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Scanner;
 
 @SpringBootApplication
 public class SpringbootJpaApplication implements CommandLineRunner {
@@ -24,13 +26,26 @@ public class SpringbootJpaApplication implements CommandLineRunner {
         create();
     }
 
+    @Transactional
     public void create() {
-        Person person = new Person(null, "Lalo", "Thor", "Python");
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Ingrese el nombre:");
+        String name = scanner.next();
+        System.out.println("Ingrese el apellido:");
+        String lastname = scanner.next();
+        System.out.println("Ingrese el lenguaje de programación:");
+        String programmingLanguage = scanner.next();
+        scanner.close();
+
+        Person person = new Person(null, name, lastname, programmingLanguage);
 
         Person created = repository.save(person);
         System.out.println(created);
+
+        repository.findById(created.getId()).ifPresent(System.out::println);
     }
 
+    @Transactional(readOnly = true)
     public void findOne() {
 /*        Person person = null;
         Optional<Person> optionalPerson = repository.findById(8L);
@@ -41,6 +56,7 @@ public class SpringbootJpaApplication implements CommandLineRunner {
         repository.findByNameEndingWith("Jo").ifPresent(System.out::println);
     }
 
+    @Transactional(readOnly = true)
     public void list() {
 //        List<Person> persons = (List<Person>) repository.buscarByProgrammingLanguage("Python", "Pepe");
         List<Person> persons = repository.findByProgrammingLanguageAndName("Python", "Pepe");

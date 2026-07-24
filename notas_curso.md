@@ -44,3 +44,7 @@ Igual hay que ver cómo se consiguen objetos mediante joins
 
 Leer la siguiente entrada de spring data jpa para referencia consultas por nombre de método
 https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
+
+23-07-2026
+
+Uso de anotación @Transactional y con Readonly = true
