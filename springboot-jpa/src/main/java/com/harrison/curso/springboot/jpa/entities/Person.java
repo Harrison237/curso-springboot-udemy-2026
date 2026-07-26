@@ -11,6 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Person {
 
+    public Person(String name, String lastname) {
+        this.name = name;
+        this.lastname = lastname;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter

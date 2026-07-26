@@ -48,3 +48,17 @@ https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
 23-07-2026
 
 Uso de anotación @Transactional y con Readonly = true
+
+25-07-2026
+
+Métodos para actualizar y eliminar registros
+Se pueden eliminar registros mediante Id o mediante el objeto completo. Al eliminar mediante el Id, JPA se encarga de verificar que exista previamente.
+Recuperación de datos específicos e instanciación mediante constructores que tengan campos concretos con "new" directo en la consulta
+Se puede instanciar de igual forma objetos DTO, pero es importante referenciar específicamente dónde está el paquete que contiene al DTO, ya que al no ser parte
+    del contexto de persistencia de Hibernate no se pueden encontrar de otra manera.
+Se puede concatenar en JPQL mediante el uso de ||, además de la función CONCAT de SQL.
+Uso de distintos operadores de SQL como CONCAT, BETWEEN, ORDER BY, LOWER, UPPER, DISTINCT, tanto mediante consulta personalizada como por nombre de método.
+
+- Temas interesantes, todo en orden.
+
+
