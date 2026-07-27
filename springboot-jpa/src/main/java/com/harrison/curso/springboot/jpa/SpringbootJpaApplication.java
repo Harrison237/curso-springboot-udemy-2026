@@ -1,6 +1,7 @@
 package com.harrison.curso.springboot.jpa;
 
 import com.harrison.curso.springboot.jpa.dto.PersonDto;
+import com.harrison.curso.springboot.jpa.entities.Audit;
 import com.harrison.curso.springboot.jpa.entities.Person;
 import com.harrison.curso.springboot.jpa.repositories.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
@@ -25,7 +27,66 @@ public class SpringbootJpaApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        this.personalizedQueriesBetween();
+        this.delete();
+    }
+
+    @Transactional(readOnly = true)
+    public void whereIn() {
+        System.out.println("=============================== Consultas mediante operador IN ===============================");
+        List<Person> persons = repository.getPersonsByIds(Arrays.asList(1L, 2L, 5L, 7L));
+        persons.forEach(System.out::println);
+    }
+
+    @Transactional(readOnly = true)
+    public void subQueries() {
+        System.out.println("=============================== Consultas con subconsultas xd ===============================");
+        System.out.println("=============================== Nombre más corto y cantidad de carácteres ===============================");
+        List<Object[]> registers = repository.getShorterNameAndLength();
+        registers.forEach(reg -> {
+            String name = (String) reg[0];
+            Integer length = (Integer) reg[1];
+            System.out.println("name=" + name + ", length=" + length);
+        });
+
+        System.out.println("=============================== Última persona registrada ===============================");
+        Optional<Person> lastRegistered = repository.getLastPersonRegistered();
+        lastRegistered.ifPresentOrElse(System.out::println, () -> System.out.println("asd"));
+    }
+
+    @Transactional(readOnly = true)
+    public void aggregationFunctionQueries() {
+        System.out.println("=============================== Consultas con funciones de agregación ===============================");
+        System.out.println("=============================== Total de registros en la tabla persona ===============================");
+        Long count = repository.getTotalPersonCount();
+        System.out.println(count);
+
+        System.out.println("=============================== ID más pequeño en la tabla persona ===============================");
+        Long min = repository.getMinId();
+        System.out.println(min);
+
+        System.out.println("=============================== ID más grande en la tabla persona ===============================");
+        Long max = repository.getMaxId();
+        System.out.println(max);
+
+        System.out.println("=============================== Nombre de las personas y su largo ===============================");
+        List<Object[]> regs = repository.getPersonNameAndLength();
+        regs.forEach(reg -> {
+            String name = (String) reg[0];
+            Integer length = (Integer) reg[1];
+            System.out.println("name=" + name + ", length=" + length);
+        });
+
+        System.out.println("=============================== Largo del nombre más corto en la tabla persona ===============================");
+        Integer minNameLength = repository.getMinLengthName();
+        System.out.println(minNameLength);
+
+        System.out.println("=============================== Largo del nombre más grande en la tabla persona ===============================");
+        Integer maxNameLength = repository.getMaxLengthName();
+        System.out.println(maxNameLength);
+
+        System.out.println("=============================== Resumen de funciones de agregación MIN, MAX, SUM, AVG, COUNT usando también LENGTH ===============================");
+        Object[] regSummary = (Object[]) repository.getAggregationFunctionSummary();
+        System.out.println("min=" + regSummary[0] + ", max=" + regSummary[1] + ", sum=" + regSummary[2] + ", avg=" + regSummary[3] + ", count=" + regSummary[4]);
     }
 
     @Transactional(readOnly = true)
@@ -48,7 +109,6 @@ public class SpringbootJpaApplication implements CommandLineRunner {
 
         persons = repository.findAllByOrderByNameAscLastnameDesc();
         persons.forEach(System.out::println);
-
     }
 
     @Transactional(readOnly = true)
@@ -188,7 +248,9 @@ public class SpringbootJpaApplication implements CommandLineRunner {
             System.out.println("Ingrese el lenguaje de programación:");
             String programmationLanguage = scanner.next();
 
-            Person updated = repository.save(new Person(person.getId(), person.getName(), person.getLastname(), programmationLanguage));
+            Audit updateAudit = new Audit(person.getAudit().getCreatedAt());
+            Person toUpdate = new Person(person.getId(), person.getName(), person.getLastname(), programmationLanguage, updateAudit);
+            Person updated = repository.save(toUpdate);
             System.out.println(updated);
         } else {
             System.out.println("El usuario con el id '" + id + "' no existe.");

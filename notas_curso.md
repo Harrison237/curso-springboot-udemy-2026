@@ -61,4 +61,20 @@ Uso de distintos operadores de SQL como CONCAT, BETWEEN, ORDER BY, LOWER, UPPER,
 
 - Temas interesantes, todo en orden.
 
+26-07-2026
+
+Uso de operadores MIN, MAX, LENGTH, AVG, SUM, COUNT e IN
+Uso de subconsultas
+Uso de clases embebidas como "subEntities" dentro de las entidades principales
+Ciclos de vida de una entity, en específico @PrePersist y @PreUpdate
+
+- Creo que lo más interesante de estas clases fueron las clases embebidas, esto es algo que no había visto antes y me parece bastante útil, aunque
+  no estoy seguro de qué tanto servirá en un proyecto a gran escala, donde la cantidad de clases y paquetes puede ser muchísmimo mayor.
+- Hay que averiguar más acerca de los ciclos de vida de las clases Entity, aunque igualmente se ven muy parecidos a los de TypeORM.
+- Me encontré un problema al utilizar la inmutabilidad en el curso, lo que en el vídeo fue usar un simple "set", en mi caso se convirtió en la creación
+  de un par de constructores extra y la instanciación de una clase Audit completamente nueva, por lo que no estoy seguro si este, siendo el proceso correcto
+  tenga que ser tan extenso.
+
+Cierre de seccioń 10.
+
 

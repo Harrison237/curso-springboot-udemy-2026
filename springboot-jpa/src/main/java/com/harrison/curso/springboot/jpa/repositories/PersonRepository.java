@@ -10,6 +10,36 @@ import java.util.Optional;
 
 public interface PersonRepository extends CrudRepository<Person, Long> {
 
+    @Query("select p from Person p where p.id IN(?1)")
+    List<Person> getPersonsByIds(List<Long> ids);
+
+    @Query("select p from Person p where p.id=(select MAX(p.id) from Person p)")
+    Optional<Person> getLastPersonRegistered();
+
+    @Query("select p.name, LENGTH(p.name) from Person p where LENGTH(p.name) = (select MIN(LENGTH(p.name)) from Person p)")
+    List<Object[]> getShorterNameAndLength();
+
+    @Query("select MIN(p.id), MAX(p.id), SUM(p.id), AVG(LENGTH(p.name)), COUNT(p.id) from Person p")
+    Object getAggregationFunctionSummary();
+
+    @Query("select MAX(LENGTH(p.name)) from Person p")
+    Integer getMaxLengthName();
+
+    @Query("select MIN(LENGTH(p.name)) from Person p")
+    Integer getMinLengthName();
+
+    @Query("select p.name, LENGTH(p.name) from Person p")
+    List<Object[]> getPersonNameAndLength();
+
+    @Query("select COUNT(p) from Person p")
+    Long getTotalPersonCount();
+
+    @Query("select MIN(p.id) from Person p")
+    Long getMinId();
+
+    @Query("select MAX(p.id) from Person p")
+    Long getMaxId();
+
     List<Person> findAllByOrderByNameAscLastnameDesc();
 
     @Query("select p from Person p ORDER BY p.name, p.lastname ASC")
