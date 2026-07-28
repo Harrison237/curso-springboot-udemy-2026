@@ -75,6 +75,26 @@ Ciclos de vida de una entity, en específico @PrePersist y @PreUpdate
   de un par de constructores extra y la instanciación de una clase Audit completamente nueva, por lo que no estoy seguro si este, siendo el proceso correcto
   tenga que ser tan extenso.
 
+Buscar sobre
+Lazy Loading.
+N+1.
+Fetch Join.
+Entity Graph.
+Dirty Checking.
+Cascading.
+Persistence Context.
+Flush.
+Locking.
+Optimistic Lock.
+Second Level Cache.
+
 Cierre de seccioń 10.
 
+27-07-2026
 
+Explicación de relaciones dentro de SpringData, OneToMany y ManyToOne
+Explicación de nombramiento de columnas automáticas para relaciones.
+Cómo nombrar explícitamente una columna de relación en caso de que el default no se ajuste a lo requerido.
+Explicación breve sobre el uso de Cascade en relaciones.
+
+- Todas las anotaciones y su uso siguen siendo muy parecidas a TypeORM.
