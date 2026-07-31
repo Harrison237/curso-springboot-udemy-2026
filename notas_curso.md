@@ -98,3 +98,17 @@ Cómo nombrar explícitamente una columna de relación en caso de que el default
 Explicación breve sobre el uso de Cascade en relaciones.
 
 - Todas las anotaciones y su uso siguen siendo muy parecidas a TypeORM.
+
+30-07-2026
+
+Al utilizar la relación OneToMany sin especificar una @JoinColumn en la tabla padre, se crea automáticamente una tabla intermedia
+  que guarda la relación (sí, tabla intermedia aunque no sea una relación ManyToMany).
+La tabla que se crea puede ser personalizada con nombre de la tabla y nombres de las columnas de relacioń. En una tabla intermedia de
+  OneToMany, el nombre de la columna que referencia a la tabla hija tiene que ser un constraint (se agrega mediante @UniqueConstraints).
+  En caso de ser ManyToMany, ambas columnas de relación deben ser constraints.
+Gracias a CascadeType.ALL, al guardar un objeto de tabla padre, si tiene objetos de tabla hija, entonces los objetos de la tabla hija
+  también se persisten en la base de datos.
+Para borrar un objeto de la tabla hija mediante referencia a la tabla padre, es importante tener el @Override al método equals en el módelo
+  de la tabla hija.
+Se debe tener cuidado con el lazy load al momento de intentar eliminar un objeto de tabla hija mediante referencia a la
+  instancia de la tabla padre.

@@ -10,8 +10,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,7 +36,14 @@ public class Client {
     @Getter
     private String lastname;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    // @JoinColumn(name = "client_id")
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+        name = "tbl_client_to_address", 
+        joinColumns = @JoinColumn(name = "custom_client_id"), 
+        inverseJoinColumns = @JoinColumn(name = "custom_address_id"), 
+        uniqueConstraints = @UniqueConstraint(columnNames = {"custom_address_id" }
+    ))
     @Getter
     private List<Address> addresses;
 
@@ -46,5 +56,11 @@ public class Client {
         this.addresses = new ArrayList<>();
         this.name = name;
         this.lastname = lastname;
+    }
+
+    public Client(String name, String lastname, List<Address> addresses) {
+        this.name = name;
+        this.lastname = lastname;
+        this.addresses = addresses;
     }
 }

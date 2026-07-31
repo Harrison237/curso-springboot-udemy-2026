@@ -1,5 +1,6 @@
 package com.harrison.springboot.jpa.relations;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.harrison.springboot.jpa.relations.entities.Client;
 import com.harrison.springboot.jpa.relations.entities.Invoice;
+import com.harrison.springboot.jpa.relations.repositories.Address;
 import com.harrison.springboot.jpa.relations.repositories.ClientRepository;
 import com.harrison.springboot.jpa.relations.repositories.InvoiceRepository;
 
@@ -28,7 +30,60 @@ public class SpringbootJpaRelationsApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		manyToOneFindByIdClient();
+		removeAddress();
+	}
+
+	@Transactional
+	public void removeAddress() {
+		Client client = new Client("Fran", "Moras");
+
+		Address address1 = new Address("El verjel", 1234);
+		Address address2 = new Address("Vasco de Gama", 9875);
+
+		client.getAddresses().add(address1);
+		client.getAddresses().add(address2);
+
+		clientRepository.save(client);
+
+		System.out.println(client);
+
+		Optional<Client> optionalClient = clientRepository.findById(3L);
+		optionalClient.ifPresent(c -> {
+			c.getAddresses().remove(address1);
+			clientRepository.save(c);
+			System.out.println(c);
+		});
+	}
+
+	@Transactional
+	public void oneToManyFindById() {
+		Optional<Client> optionalClient = clientRepository.findById(2L);
+		optionalClient.ifPresent(client -> {
+
+			Address address1 = new Address("El verjel", 1234);
+			Address address2 = new Address("Vasco de Gama", 9875);
+
+			Client toCreate = new Client(client.getName(), client.getLastname(), Arrays.asList(address1, address2));
+
+			clientRepository.save(toCreate);
+
+			System.out.println(toCreate);
+		});
+	}
+
+	@Transactional
+	public void oneToMany() {
+		Client client = new Client("Fran", "Moras");
+
+		Address address1 = new Address("El verjel", 1234);
+		Address address2 = new Address("Vasco de Gama", 9875);
+
+		client.getAddresses().add(address1);
+		client.getAddresses().add(address2);
+
+		clientRepository.save(client);
+
+		System.out.println(client);
 	}
 
 	@Transactional
