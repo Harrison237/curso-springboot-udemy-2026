@@ -1,7 +1,7 @@
 package com.harrison.springboot.jpa.relations.entities;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.harrison.springboot.jpa.relations.repositories.Address;
 
@@ -37,7 +37,7 @@ public class Client {
     private String lastname;
 
     // @JoinColumn(name = "client_id")
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(
         name = "tbl_client_to_address", 
         joinColumns = @JoinColumn(name = "custom_client_id"), 
@@ -45,22 +45,44 @@ public class Client {
         uniqueConstraints = @UniqueConstraint(columnNames = {"custom_address_id" }
     ))
     @Getter
-    private List<Address> addresses;
+    private Set<Address> addresses;
 
-    @Override
-    public String toString() {
-        return "{id=" + id + ", name=" + name + ", lastname=" + lastname + ", addresses=" + addresses + "}";
-    }
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "client")
+    @Getter
+    private Set<Invoice> invoices = new HashSet<>();
 
     public Client(String name, String lastname) {
-        this.addresses = new ArrayList<>();
+        this.addresses = new HashSet<>();
         this.name = name;
         this.lastname = lastname;
     }
 
-    public Client(String name, String lastname, List<Address> addresses) {
+    public Client(String name, String lastname, Set<Address> addresses) {
         this.name = name;
         this.lastname = lastname;
         this.addresses = addresses;
     }
+
+    public Client(String name, String lastname, Set<Address> addresses, Set<Invoice> invoices) {
+        this.name = name;
+        this.lastname = lastname;
+        this.addresses = addresses;
+        this.invoices = invoices;
+    }
+
+    public Client addInvoice(Invoice invoice) {
+        this.invoices.add(invoice);
+
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "{id=" + id + 
+                ", name=" + name + 
+                ", lastname=" + lastname + 
+                ", addresses=" + addresses + 
+                ", invoices=" + invoices + "}";
+    }
+
 }

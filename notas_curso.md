@@ -112,3 +112,15 @@ Para borrar un objeto de la tabla hija mediante referencia a la tabla padre, es 
   de la tabla hija.
 Se debe tener cuidado con el lazy load al momento de intentar eliminar un objeto de tabla hija mediante referencia a la
   instancia de la tabla padre.
+
+01-08-2026
+
+Relaciones SQL bidireccionales representadas en Entities de JPA.
+Para evitar el uso del parámetro en el application.properties de carga lazy, se pueden utilizar consultas personalizadas en el repository
+  en cuestión, de forma que se hagan joins para obtener las colecciones necesarias.
+Es importante que, si se va a solicitar más de una colección en una sola consulta, las instancias en los entities sean de tipo Set y no List,
+  ya que el Set se encuentra mejor optimizado y el uso de List da error.
+Se debe prestar atención a las referencias circulares en los toString de los entities.
+Los toString de los entities llaman a la base de datos y puede haber problemas con llamados múltiples si la sesión se cierra.
+
+- Hay que averiguar más sobre el uso de los tipos de CASCADE y las sesiones de JPA.

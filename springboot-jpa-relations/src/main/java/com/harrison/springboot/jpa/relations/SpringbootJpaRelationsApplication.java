@@ -1,7 +1,9 @@
 package com.harrison.springboot.jpa.relations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -30,7 +32,59 @@ public class SpringbootJpaRelationsApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		removeAddress();
+		oneToManyBidirectionalFindById();
+	}
+
+	@Transactional
+	public void oneToManyBidirectionalFindById() {
+		Optional<Client> optionalClient = clientRepository.findOneWithAddressesAndInvoices(1L);
+
+		optionalClient.ifPresent(client -> {
+			client
+				.addInvoice(new Invoice("Compras de la casa", 5000L, client))
+				.addInvoice(new Invoice("Compras de oficina", 8000L, client));
+	
+			clientRepository.save(client);
+	
+			System.out.println(client);
+		});
+	}
+
+	@Transactional
+	public void oneToManyBidirectional() {
+		Client client = new Client("Fran", "Moras");
+
+		client
+			.addInvoice(new Invoice("Compras de la casa", 5000L, client))
+			.addInvoice(new Invoice("Compras de oficina", 8000L, client));
+
+		clientRepository.save(client);
+
+		System.out.println(client);
+	}
+
+	@Transactional
+	public void removeAddressFindById() {
+		Optional<Client> optionalClient = clientRepository.findById(2L);
+		optionalClient.ifPresent(client -> {
+
+			Address address1 = new Address("El verjel", 1234);
+			Address address2 = new Address("Vasco de Gama", 9875);
+
+			
+			Client toCreate = new Client(client.getName(), client.getLastname(), Set.of(address1, address2));
+
+			clientRepository.save(toCreate);
+
+			System.out.println(toCreate);
+
+			Optional<Client> optionalClient2 = clientRepository.findOneWithAddresses(2L);
+			optionalClient2.ifPresent(c -> {
+				c.getAddresses().remove(address2);
+				clientRepository.save(c);
+				System.out.println(c);
+			});
+		});
 	}
 
 	@Transactional
@@ -63,7 +117,7 @@ public class SpringbootJpaRelationsApplication implements CommandLineRunner {
 			Address address1 = new Address("El verjel", 1234);
 			Address address2 = new Address("Vasco de Gama", 9875);
 
-			Client toCreate = new Client(client.getName(), client.getLastname(), Arrays.asList(address1, address2));
+			Client toCreate = new Client(client.getName(), client.getLastname(), Set.of(address1, address2));
 
 			clientRepository.save(toCreate);
 

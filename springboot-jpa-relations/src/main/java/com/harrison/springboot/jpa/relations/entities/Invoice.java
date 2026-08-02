@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "invoice")
@@ -28,13 +29,18 @@ public class Invoice {
     @Getter
     private Long total;
 
-    @ManyToOne
     @JoinColumn(name = "client_id", referencedColumnName = "id")
+    @ManyToOne
     private Client client;
 
     @Override
     public String toString() {
-        return "{id=" + id + ", description=" + description + ", total=" + total + ", client=" + client + "}";
+        return "{id=" + id + ", description=" + description + ", total=" + total + "}";
+    }
+
+    public Invoice(String description, Long total) {
+        this.description = description;
+        this.total = total;
     }
 
     public Invoice(String description, Long total, Client client) {
