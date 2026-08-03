@@ -124,3 +124,11 @@ Se debe prestar atención a las referencias circulares en los toString de los en
 Los toString de los entities llaman a la base de datos y puede haber problemas con llamados múltiples si la sesión se cierra.
 
 - Hay que averiguar más sobre el uso de los tipos de CASCADE y las sesiones de JPA.
+
+02-08-2026
+
+Relaciones OneToOne y ManyToMany
+Configuración de tabla intermedia en ManyToMany
+
+Las relaciones bidireccionales siguen siendo un problema en inmutabilidad al requerir el uso de Setters posterior a la creacioń de los objetos,
+  nada que no se pueda solucionar con lógica y sin referenciar mutuamente a las clases (que tampoco lo veo muy necesario).

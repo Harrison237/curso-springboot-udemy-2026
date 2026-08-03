@@ -1,7 +1,6 @@
 package com.harrison.springboot.jpa.relations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -11,11 +10,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.harrison.springboot.jpa.relations.entities.Address;
 import com.harrison.springboot.jpa.relations.entities.Client;
+import com.harrison.springboot.jpa.relations.entities.ClientDetail;
+import com.harrison.springboot.jpa.relations.entities.Course;
 import com.harrison.springboot.jpa.relations.entities.Invoice;
-import com.harrison.springboot.jpa.relations.repositories.Address;
+import com.harrison.springboot.jpa.relations.entities.Student;
+import com.harrison.springboot.jpa.relations.repositories.ClientDetailRepository;
 import com.harrison.springboot.jpa.relations.repositories.ClientRepository;
 import com.harrison.springboot.jpa.relations.repositories.InvoiceRepository;
+import com.harrison.springboot.jpa.relations.repositories.StudentRepository;
 
 @SpringBootApplication
 public class SpringbootJpaRelationsApplication implements CommandLineRunner {
@@ -26,13 +30,141 @@ public class SpringbootJpaRelationsApplication implements CommandLineRunner {
 	@Autowired
 	private InvoiceRepository invoiceRepository;
 
+	@Autowired
+	private ClientDetailRepository clientDetailRepository;
+
+	@Autowired
+	private StudentRepository studentRepository;
+
 	public static void main(String[] args) {
 		SpringApplication.run(SpringbootJpaRelationsApplication.class, args);
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
-		oneToManyBidirectionalFindById();
+		manyToMany();
+	}
+
+	@Transactional
+	public void manyToMany() {
+		Student student1 = new Student("Jano", "Pura");
+		Student student2 = new Student("Erba", "Doe");
+
+		Course course1 = new Course("Curso de Java Master", "Harrison");
+		Course course2 = new Course("Curso de Spring Boot", "Harrison");
+
+		student1.getCourses().addAll(Set.of(course1, course2));
+		student2.getCourses().addAll(Set.of(course2));
+
+		studentRepository.saveAll(List.of(student1, student2));
+
+		System.out.println(student1);
+		System.out.println(student2);
+	}
+
+	@Transactional
+	public void oneToOneBidirectionalFindById() {
+		Optional<Client> optionalClient = clientRepository.findOneWithAddressesAndInvoicesAndDetail(2L);
+
+		optionalClient.ifPresent(client -> {
+			ClientDetail clientDetail = new ClientDetail(true, 5000, client);
+			clientDetailRepository.save(clientDetail);
+			client = new Client(client.getId(), client.getName(), client.getLastname(), client.getAddresses(), client.getInvoices(), clientDetail);
+
+			System.out.println(client);
+		});
+	}
+
+	@Transactional
+	public void oneToOneBidirectional() {
+		ClientDetail clientDetail = new ClientDetail(true, 5000);
+		Client client = new Client("Erba", "Pura", clientDetail);
+		clientRepository.save(client);
+		System.out.println(client);
+	}
+
+	@Transactional
+	public void oneToOneFindById() {
+		ClientDetail clientDetail = new ClientDetail(true, 5000);
+		clientDetailRepository.save(clientDetail);
+
+		Optional<Client> optionalClient = clientRepository.findOneWithAddressesAndInvoicesAndDetail(2L);
+
+		optionalClient.ifPresent(client -> {
+			clientRepository.save(client);
+			System.out.println(client);
+		});
+	}
+
+	@Transactional
+	public void oneToOne() {
+		ClientDetail clientDetail = new ClientDetail(true, 5000);
+		clientDetailRepository.save(clientDetail);
+
+		Client client = new Client("Erba", "Pura", clientDetail);
+		clientRepository.save(client);
+		System.out.println(client);
+	}
+
+	@Transactional
+	public void removeInvoiceBidirectional() {
+		
+		Client client = new Client("Fran", "Moras");
+
+		client
+			.addInvoice(new Invoice("Compras de la casa", 5000L, client))
+			.addInvoice(new Invoice("Compras de oficina", 8000L, client));
+	
+		clientRepository.save(client);
+	
+		System.out.println(client);
+
+		Optional<Client> optionalClientDb = clientRepository.findOneWithAddressesAndInvoices(client.getId());
+
+		optionalClientDb.ifPresent(clientDb -> {
+			Invoice invoice3 = new Invoice(1L, "Compras de la casa", 5000L, null);
+			Optional<Invoice> optionalInvoice = Optional.of(invoice3);
+			optionalInvoice.ifPresent(invoice -> {
+				clientDb.getInvoices().remove(invoice);
+				clientRepository.save(clientDb);
+				System.out.println(clientDb);
+			});
+		});
+	}
+
+	@Transactional
+	public void removeInvoiceBidirectionalFindById() {
+		Optional<Client> optionalClient = clientRepository.findOneWithAddressesAndInvoices(1L);
+
+		optionalClient.ifPresent(client -> {
+			client
+				.addInvoice(new Invoice("Compras de la casa", 5000L, client))
+				.addInvoice(new Invoice("Compras de oficina", 8000L, client));
+	
+			clientRepository.save(client);
+	
+			System.out.println(client);
+		});
+
+		Optional<Client> optionalClientDb = clientRepository.findOneWithAddressesAndInvoices(1L);
+
+		optionalClientDb.ifPresent(client -> {
+/* 			Optional<Invoice> optionalInvoice = invoiceRepository.findById(2L);
+			optionalInvoice.ifPresent(invoice -> {
+				client.getInvoices().remove(invoice);
+				clientRepository.save(client);
+				System.out.println(client);
+			}); */
+
+			// Eliminación manual mediante comparación de campos en lugar de buscar directo en la base de datos.
+			Invoice invoice3 = new Invoice(1L, "Compras de la casa", 5000L, null);
+			Optional<Invoice> optionalInvoice = Optional.of(invoice3);
+			optionalInvoice.ifPresent(invoice -> {
+				client.getInvoices().remove(invoice);
+				clientRepository.save(client);
+				System.out.println(client);
+			});
+		});
 	}
 
 	@Transactional

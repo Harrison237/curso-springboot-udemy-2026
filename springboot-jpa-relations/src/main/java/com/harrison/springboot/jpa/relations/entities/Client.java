@@ -3,16 +3,16 @@ package com.harrison.springboot.jpa.relations.entities;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.harrison.springboot.jpa.relations.repositories.Address;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -45,11 +45,15 @@ public class Client {
         uniqueConstraints = @UniqueConstraint(columnNames = {"custom_address_id" }
     ))
     @Getter
-    private Set<Address> addresses;
+    private Set<Address> addresses = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "client")
     @Getter
     private Set<Invoice> invoices = new HashSet<>();
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "client")
+    @Getter
+    private ClientDetail clientDetail;
 
     public Client(String name, String lastname) {
         this.addresses = new HashSet<>();
@@ -70,8 +74,20 @@ public class Client {
         this.invoices = invoices;
     }
 
+    public Client(String name, String lastname, ClientDetail clientDetail) {
+        this.name = name;
+        this.lastname = lastname;
+        this.clientDetail = clientDetail;
+    }
+
     public Client addInvoice(Invoice invoice) {
         this.invoices.add(invoice);
+
+        return this;
+    }
+
+    public Client removeInvoice(Invoice invoice) {
+        this.invoices.remove(invoice);
 
         return this;
     }
@@ -82,7 +98,9 @@ public class Client {
                 ", name=" + name + 
                 ", lastname=" + lastname + 
                 ", addresses=" + addresses + 
-                ", invoices=" + invoices + "}";
+                ", invoices=" + invoices + 
+                ", clientDetail=" + clientDetail + 
+                "}";
     }
 
 }
