@@ -132,3 +132,11 @@ Configuración de tabla intermedia en ManyToMany
 
 Las relaciones bidireccionales siguen siendo un problema en inmutabilidad al requerir el uso de Setters posterior a la creacioń de los objetos,
   nada que no se pueda solucionar con lógica y sin referenciar mutuamente a las clases (que tampoco lo veo muy necesario).
+
+03-08-2026
+
+Diferentes métodos en relación ManyToMany, buscar por base de datos, eliminar y relación bidireccional entre tablas.
+Inicio de proyecto para sección 12.
+
+- Cierre de sección 11
+
