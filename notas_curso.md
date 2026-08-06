@@ -140,3 +140,15 @@ Inicio de proyecto para sección 12.
 
 - Cierre de sección 11
 
+05-08-2026
+
+Métodos básicos para el crud en el ProductController
+Validación de productos no encontrados en los métodos de update y delete en el service
+Uso de programación funcional para los retornos tanto del service como del controller
+Uso de validaciones en clases para asegurar que los campos del objeto recibido cumplan con ciertas condiciones
+
+- Preferí utilizar programación funcional en lugar de seguir el curso ya que es más compacta y se puede entender con facilidad
+  (*Hay que tener cuidado con complicar demasiado el código)
+- La validación de objetos es muy parecida al class-validator que usaba en NestJS
+- Me surgió la duda, si la validación de objetos puede realizarse con distintas herramientas, esta no debería estar tan acoplada a la
+  clase/objeto en cuestión, hay alguna forma de desacoplarla? O al escoger validador hay que utilizar esa herramienta de inicio a fin?
