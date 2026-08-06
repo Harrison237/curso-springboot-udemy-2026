@@ -39,6 +39,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    public Optional<Product> update(Long id, Product product) {
+        return repository.findById(id).map(foundProduct -> {
+            Product toUpdate = new Product(id, product.getName(), product.getPrice(), product.getDescription());
+            return Optional.of(repository.save(toUpdate));
+        }).orElse(Optional.empty());
+    }
+
+    @Override
+    @Transactional
     public Optional<Product> delete(Product product) {
         if (product.getId() == null)
             return Optional.empty();
@@ -50,4 +59,13 @@ public class ProductServiceImpl implements ProductService {
         return toDelete;
     }
 
+    @Override
+    @Transactional
+    public Optional<Product> delete(Long id) {
+        Optional<Product> toDelete = repository.findById(id);
+
+        toDelete.ifPresent(repository::delete);
+
+        return toDelete;
+    }
 }
