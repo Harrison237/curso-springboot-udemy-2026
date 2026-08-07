@@ -152,3 +152,13 @@ Uso de validaciones en clases para asegurar que los campos del objeto recibido c
 - La validación de objetos es muy parecida al class-validator que usaba en NestJS
 - Me surgió la duda, si la validación de objetos puede realizarse con distintas herramientas, esta no debería estar tan acoplada a la
   clase/objeto en cuestión, hay alguna forma de desacoplarla? O al escoger validador hay que utilizar esa herramienta de inicio a fin?
+
+06-08-2026
+
+Creación y uso de validaciones personalizadas
+Creación y uso de validaciones personalizadas mediante clases que implementan la interfaz "Validator" de springboot
+Creación y uso de validaciones personalizadas mediante anotaciones
+Validaciones personalizadas buscando en la base de datos
+Mensajes de error personalizados utilizando archivos .properties
+
+- Cierre sección 12
