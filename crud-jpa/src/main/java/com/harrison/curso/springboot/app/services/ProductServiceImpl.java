@@ -41,7 +41,8 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public Optional<Product> update(Long id, Product product) {
         return repository.findById(id).map(foundProduct -> {
-            Product toUpdate = new Product(id, product.getName(), product.getPrice(), product.getDescription());
+            Product toUpdate = new Product(id, product.getSku(), product.getName(), product.getPrice(),
+                    product.getDescription());
             return Optional.of(repository.save(toUpdate));
         }).orElse(Optional.empty());
     }
@@ -67,5 +68,11 @@ public class ProductServiceImpl implements ProductService {
         toDelete.ifPresent(repository::delete);
 
         return toDelete;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsBySku(String sku) {
+        return repository.existsBySku(sku);
     }
 }

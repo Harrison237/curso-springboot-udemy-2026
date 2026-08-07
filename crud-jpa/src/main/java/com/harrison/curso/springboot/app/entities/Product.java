@@ -1,12 +1,14 @@
 package com.harrison.curso.springboot.app.entities;
 
+import com.harrison.curso.springboot.app.validation.IsExistsDb;
+import com.harrison.curso.springboot.app.validation.IsRequired;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -25,16 +27,21 @@ public class Product {
     private Long id;
 
     @Getter
-    @NotEmpty
+    @IsExistsDb
+    @IsRequired
+    private String sku;
+
+    @Getter
+    @IsRequired(message = "{IsRequired.product.name}")
     @Size(min = 3, max = 20)
     private String name;
 
     @Getter
-    @Min(500)
-    @NotNull
+    @Min(value = 500, message = "{Min.product.price}")
+    @NotNull(message = "{NotEmpty.product.price}")
     private Integer price;
 
     @Getter
-    @NotEmpty
+    @IsRequired(/* message = "{NotEmpty.product.description}" */)
     private String description;
 }
