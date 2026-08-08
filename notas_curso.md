@@ -162,3 +162,18 @@ Validaciones personalizadas buscando en la base de datos
 Mensajes de error personalizados utilizando archivos .properties
 
 - Cierre sección 12
+
+07-08-2026
+
+Inicio de sección, creación y mapeo de nuevas tablas Role y User con tabla intermedia para relación ManyToMany
+Revisión básica de protección de rutas mediante SecurityFilterChain, aún sin entrar al tema de JWT (protección de rutas públicas)
+Especificidad entre métodos POST, GET, etc para rutas públicas
+TroubleShotting de problemas presentados por inmutabilidad en campos booleanos, tanto en entidad como en controlador
+Declaración de ruta pública que hace que el valor de "admin" se fuerce a "false" para la creación de un usuario
+Declaración de Bean para PasswordEncoder (Uso de Bcrypt, clásico)
+Exclusión de campos sensibles en la respuesta JSON de la lista de usuarios mediante anotación JsonProperty
+
+- Tuve varios problemas al seguir el patrón de inmutabilidad, sobre todo con los campos boolean, ya que lo que es un Setter se vuelve
+  un constructor entero.
+- Hay que tener cuidado con los booleanos al enviar los valores a la base de datos, ya que por defecto no pueden ser null.
+- La parte de excluir campos en el JSON de respuesta es bastante interesante.

@@ -1,0 +1,11 @@
+package com.harrison.curso.springboot.app.services;
+
+import java.util.List;
+
+import com.harrison.curso.springboot.app.entities.User;
+
+public interface UserService {
+    List<User> findAll();
+
+    User save(User user);
+}
