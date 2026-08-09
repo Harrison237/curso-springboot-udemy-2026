@@ -1,0 +1,41 @@
+services:
+  floci:
+    image: floci/floci:latest
+    container_name: floci-aws
+    ports:
+      - "0.0.0.0:4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/harrison/.floci/floci-data:/app/data
+    environment:
+      - FLOCI_LOG_LEVEL=info
+      - FLOCI_DATA_DIR=/var/lib/floci
+      - FLOCI_STORAGE_MODE=persistent
+      - FLOCI_HOSTNAME=192.168.1.10
+    restart: unless-stopped
+
+  floci-ui:
+    image: floci/floci-ui:latest
+    container_name: floci-aws-ui
+    ports:
+      - "0.0.0.0:4500:4500"
+    volumes:
+      - /home/harrison/.floci/floci-data:/var/lib/floci
+    environment:
+      - FLOCI_LOG_LEVEL=info
+      - FLOCI_DATA_DIR=/var/lib/floci
+      - FLOCI_STORAGE_MODE=hybrid
+      - AWS_ENDPOINT_URL=http://floci:4566
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    restart: unless-stopped
+
+
+  rds-bridge:
+    image: alpine/socat
+    container_name: rds-bridge
+    ports:
+      - "13306:3306"
+    command: TCP-LISTEN:3306,fork,reuseaddr TCP:floci-rds-e8edcb:3306
+    restart: unless-stopped

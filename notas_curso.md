@@ -216,3 +216,33 @@ Configuración de cors para acceso a recursos desde frontend
 - Misma pregunta que sobre Jwt, cómo se configura esta restricción sobre rutas en un sistema distribuido por microservicios?
 
 - Cierre de sección 13
+
+09-08-2026 (Parte 1)
+
+La sección 15 (ya que la sección 14 fue acerca de descarga de recursos) trató sobre el despliegue de la aplicación en una infraestructura serverless en AWS.
+Uno de los recursos a utilizar fue una instancia de RDS, como ya tengo experiencia en el trabajo de que estas instancias son costosas, aún cuando no se están
+utilizando (xd) decidí utilizar una herramienta llamada "floci" (mejor que localstack) para simular la infraestructura necesaria de AWS. A continuación describo lo más
+importante del despliegue.
+
+- Setup de entorno "Serverless": Como me gusta complicarme la vida, decidí que montaría floci en un computador aparte, mi laptop personal con Ubuntu 26.04, de forma que se pueda emular correctamente el acceso a recursos externos en lugar de poder ingresar a todo mediante "localhost".
+  Toqué un poco de docker compose, nunca lo había utilizado pero no va más allá de montar distintos contenedores con un solo archivo .yml
+  Dato importante, hay que compartir la red por el host y puerto "0.0.0.0:4566" hacia el puerto del contenedor 4566, ya que se requiere exponer todo el tráfico en la red local para poder hacer las configuraciones desde mi máquina. Esto no es una práctica recomendada en un entorno de producción, pero bajo mi red todo está protegido.
+  Monté también una instancia de floci-ui, dato interesante, para configurar la url hacia el servicio de floci se tiene que referenciar al nombre del servicio dentro del docker-compose.yml en lugar de una dirección IP directa.
+  Lo demás fueron configuraciones generales, como el nivel de log o el volumen para que no se borre la información al hacer docker compose down
+
+- Instancia RDS: La creación de esta instancia fue relativamente sencilla. Lo interesante de esta herramienta es que obliga a utilizar comandos de la aws cli al no tener acceso a la consola de AWS, por lo que fuerza de cierta manera a aprender los comandos más importantes relacionados a los servicios. Una de las cosas más importantes sobre este servicio es que al invocarlo en la AWS CLI se tiene que utilizar siempre el --endpoint-url, ya que la herramienta lo sobreescribe e intenta irse a un endpoint real de AWS, cosa que causó varios problemas.
+  Lo segundo y más importante, es que el contenedor que monta floci para la RDS no expone el puerto para la conexión a la base de datos directamente, sino que lo deja encerrado en un puerto (en este caso fue el 33060) de la red interna de docker que crea floci por defecto (red floci_default). Para poder exponer el puerto se tuvo que crear un servicio extra en el docker compose, un contenedor con la imagen alpine/socat que se encargara de tomar el tráfico del contenedor creado por floci en el puerto 3306 interno y exponerlo hacia un puerto personalizado del host, en este caso se escogió el 13306 (para referencia completa, revisar el docker-compose.yml)
+  Importante** En caso de tener más instancias de RDS, cada una requeriría de su propio servicio alpine/socat para redirigir el tráfico de la red interna de docker hacia algún puerto del host
+
+- Instancia EC2: El curso montaba los recursos hacia una instancia de EC2, por lo que quise hacer lo mismo de manera local. En este caso, la aws cli no requiere especificar el --endpoint-url, ya que no lo sobreescribe cómo sí lo hacían los comandos relacionados a rds. Las AMIS que provee floci son simples imágenes del repositorio público de AWS, lo que trae algunas diferencias respecto al aprovisionamiento que hace AWS.
+  Problema principal: La instancia EC2 de floci no aprovisiona ssh por defecto
+    Al tomar una simple imagen del repositorio público de AWS, la imagen no viene realmente configurada para temas que AWS da por defecto como la conexión por SSH, por lo que esto se tuvo que configurar manualmente. Me di cuenta ya que el comando aws ec2 create-key-pair no crea un archivo .pem válido, sino que crea uno fake que no permite una correcta conexión mediante ssh.
+    Sumado a esto, en el contenedor que crea floci para simular la instancia tampoco viene instalado openssh-server por defecto, de manera que no había ninguna forma de conectarse a ssh. Esto es algo esperable de un emulador de servicios de AWS, y son la clase de detalles que se deben gestionar manualmente. En este caso, instalé openssh-server en el contendor manualmente, y agregué la llave creada manualmente en mi equipo hacia el archivo "/root/.ssh/authorized_keys" para poder simular correctamente el comportamiento de ssh hacia una instancia de EC2. Por defecto, floci expone el puerto 2200 para conectarse hacia la instancia, hay que ver qué otros puertos expone a medida que se crean más instancias.
+    Para conectar utilizaba el siguiente comando 'ssh -i floci-ec2-key -p 2200 root@192.168.1.10', para próximas pruebas sería bueno configurar el usuario ec2-user en el contenedor, ya que este es el usuario por defecto que crea AWS en sus instancias para conexiones ssh, en lugar del root que finalmente quedó.
+    Por lo demás, instalación de java jdk 17, copiar el archivo .jar generado mediante scp y levantar mediante java -jar
+    Importante** El contenedor que simula la instancia se crea en la misma red de docker (floci_default) que la instancia de RDS, por lo que se puede conectar directamente mediante la ip interna del contenedor tal como se haría en una red privada de VPC.
+    Al momento de crear reglas de entrada en el security-group de la instancia, lo que hace floci es generar un contenedor con la imagen alpine/socat para exponer el puerto declarado hacia un puerto del host (en mi caso, configuré el tráfico para que pudiera entrar por el puerto 8080 a la instancia, y floci lo expuso hacia el puerto 30000 del host, aplicando la misma lógica manual que se utilizó para exponer el tráfico de la instancia de RDS). Por eso el application.properties quedó apuntando hacia una base de datos en 172.18.0.5:3306, por esta configuración se tuvieron que saltar los tests de maven (desde el equipo local no hay conexión hacia esa dirección IP)
+
+- Quiero hacer este mismo ejercicio mediante un aprovisionamiento con AWS CDK, montando un apigateway que redirija hacia una lambda y de ahí se vaya a un task montado en ECS (tal como se hace en el trabajo actualmente)
+
+- Cierre de sección 15
