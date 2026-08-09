@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +21,9 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(
-            @Autowired UserRepository repository,
-            @Autowired RoleRepository roleRepository,
-            @Autowired PasswordEncoder passwordEncoder) {
+            UserRepository repository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -53,6 +52,11 @@ public class UserServiceImpl implements UserService {
                 user.getEnabled(), roles,
                 user.getAdmin());
         return repository.save(userToSave);
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return repository.existsByUsername(username);
     }
 
 }

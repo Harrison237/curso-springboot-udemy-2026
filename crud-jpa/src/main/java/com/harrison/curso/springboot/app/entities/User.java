@@ -1,8 +1,11 @@
 package com.harrison.curso.springboot.app.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.harrison.curso.springboot.app.validation.ExistsByUsername;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,11 +21,9 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "user_table")
-@NoArgsConstructor
 public class User {
 
     @Id
@@ -30,6 +31,7 @@ public class User {
     @Getter
     private Long id;
 
+    @ExistsByUsername
     @Column(unique = true)
     @NotBlank
     @Size(min = 4, max = 12)
@@ -44,6 +46,7 @@ public class User {
     @Getter
     private Boolean enabled;
 
+    @JsonIgnoreProperties({ "users", "handler", "hibernateLazyInitializer" })
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"), uniqueConstraints = {
             @UniqueConstraint(columnNames = { "user_id, role_id" }) })
@@ -55,14 +58,49 @@ public class User {
     @Getter
     private Boolean admin;
 
+    public User() {
+        this.roles = new ArrayList<>();
+    }
+
     public User(Long id, @NotBlank @Size(min = 4, max = 12) String username, @NotBlank String password, Boolean enabled,
             List<Role> roles, Boolean admin) {
         this.id = id;
         this.username = username;
         this.password = password;
-        this.enabled = enabled != null ? enabled : true;
+        this.enabled = enabled != null ? enabled : Boolean.TRUE;
         this.roles = roles;
-        this.admin = admin != null ? admin : false;
+        this.admin = admin != null ? admin : Boolean.FALSE;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((username == null) ? 0 : username.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        User other = (User) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (username == null) {
+            if (other.username != null)
+                return false;
+        } else if (!username.equals(other.username))
+            return false;
+        return true;
     }
 
 }

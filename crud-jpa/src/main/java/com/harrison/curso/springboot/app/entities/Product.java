@@ -1,6 +1,5 @@
 package com.harrison.curso.springboot.app.entities;
 
-import com.harrison.curso.springboot.app.validation.IsExistsDb;
 import com.harrison.curso.springboot.app.validation.IsRequired;
 
 import jakarta.persistence.Entity;
@@ -27,7 +26,6 @@ public class Product {
     private Long id;
 
     @Getter
-    @IsExistsDb
     @IsRequired
     private String sku;
 

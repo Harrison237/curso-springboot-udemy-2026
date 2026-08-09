@@ -3,7 +3,6 @@ package com.harrison.curso.springboot.app.services;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +14,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
 
-    public ProductServiceImpl(@Autowired ProductRepository repository) {
+    public ProductServiceImpl(ProductRepository repository) {
         this.repository = repository;
     }
 
@@ -33,7 +32,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product save(Product product) {
+    public Product save(Product product) throws IllegalArgumentException {
+        if (repository.existsBySku(product.getSku())) {
+            throw new IllegalArgumentException(
+                    "Ya existe un producto con el SKU: " + product.getSku());
+        }
         return repository.save(product);
     }
 

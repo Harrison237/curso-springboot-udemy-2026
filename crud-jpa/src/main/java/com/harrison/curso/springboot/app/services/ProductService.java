@@ -11,7 +11,7 @@ public interface ProductService {
 
     Optional<Product> findById(Long id);
 
-    Product save(Product product);
+    Product save(Product product) throws IllegalArgumentException;
 
     Optional<Product> update(Long id, Product product);
 

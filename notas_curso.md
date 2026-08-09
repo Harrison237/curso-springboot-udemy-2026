@@ -177,3 +177,28 @@ Exclusión de campos sensibles en la respuesta JSON de la lista de usuarios medi
   un constructor entero.
 - Hay que tener cuidado con los booleanos al enviar los valores a la base de datos, ya que por defecto no pueden ser null.
 - La parte de excluir campos en el JSON de respuesta es bastante interesante.
+
+08-08-2026 (Parte 1)
+
+Agregada dependencia JWT al proyecto para validación
+Creación de clase TokenJwtConfig para configuración de valores estáticos
+Implementación de interfaz UserDetailsService para validación de usuario que intenta iniciar sesión mediante
+  programación funcional
+Traducción de roles del usuario hacia instancia de SimpleGrantedAuthority para posterior seteo de claims en token
+La interfaz UserDetailsService en el método loadUserByUsername espera que se retorne una instancia de User
+  del paquete de springFramework, sin embargo, como en el proyecto local ya se tiene una clase llamada User, entonces
+  hay que referenciar a la clase directo del paquete para poder interactuar correctamente
+Se retiran @Autowired de constructores al no ser necesarios, la DI ya se maneja directo por spring al ser componentes o Beans
+Se agregan filtros a la clase de SpringSecurity para autenticación mediante Jwt y validación del Jwt
+Para el filtro de autenticación, se implementa la interfaz UsernamePasswordAuthenticationFilter
+Para el uso del user en el filtro de autenticación en el método successfulAuthentication, el user que llega desde el authResult.getPrincipal
+  también es una instancia de User de springFramework (no la clase local)
+Se realiza la creación del Jwt para validación de sesiones
+En este caso, el SECRET_KEY utilizado para generar el Jwt es dinámico, por lo que se requiere uno nuevo cada vez que se inicia la aplicación
+
+- Tuve un problema con la validación de IsExistsDbValidation al momento de instanciar el service y el repository, la mejor solución
+  fue mover la lógica al service, a lo mejor algo acoplado a la implementación, pero sigue siendo lógica de negocio después de todo
+- La implementación de Jwt fue extensa, aunque ya la conocía de NestJs, Springboot cuenta con más restricciones aunque esto da una
+  implementación más robusta de las validaciones
+- Me interesaría aprender sobre manejo de tokens vencidos a nivel de base de datos, aunque esto es un anti-patron ya que la validación 
+  de los Jwt debería estar desacoplada de la persistencia (a lo mejor se puede hacer en caché también)

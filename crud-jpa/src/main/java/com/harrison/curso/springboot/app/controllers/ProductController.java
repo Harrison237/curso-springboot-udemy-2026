@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +23,7 @@ import com.harrison.curso.springboot.app.services.ProductService;
 import com.harrison.curso.springboot.app.validation.ProductValidation;
 
 import jakarta.validation.Valid;
+import tools.jackson.databind.json.JsonMapper;
 
 @RestController
 @RequestMapping("/api/products")
@@ -33,8 +34,8 @@ public class ProductController {
     private final ProductValidation validation;
 
     ProductController(
-            @Autowired ProductService service,
-            @Autowired ProductValidation validation) {
+            ProductService service,
+            ProductValidation validation) {
         this.service = service;
         this.validation = validation;
     }
@@ -60,7 +61,19 @@ public class ProductController {
         if (result.hasFieldErrors())
             return validation(result);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(product));
+        Product productSaved = null;
+
+        try {
+            productSaved = service.save(product);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(JsonMapper.builder().build().writeValueAsString(
+                            Map.of("error", e.getMessage(), "message", "Error al crear el producto")));
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(productSaved);
     }
 
     @PutMapping("/{id}")
