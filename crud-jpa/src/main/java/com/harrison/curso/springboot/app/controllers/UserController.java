@@ -7,18 +7,22 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.harrison.curso.springboot.app.entities.Role;
 import com.harrison.curso.springboot.app.entities.User;
 import com.harrison.curso.springboot.app.services.UserService;
 
 import jakarta.validation.Valid;
 
+@CrossOrigin(origins = { "http://localhost:4200" }, originPatterns = "*")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -31,10 +35,11 @@ public class UserController {
     }
 
     @GetMapping
-    public List<?> list() {
+    public List<User> list() {
         return service.findAll();
     }
 
+    @PreAuthorize("hasRole('" + Role.ADMIN + "')")
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result) {
         if (result.hasFieldErrors())
@@ -46,7 +51,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
         return create(new User(user.getId(), user.getUsername(), user.getPassword(),
-                Optional.ofNullable(user).map(u -> u.getEnabled()).orElse(true),
+                Optional.ofNullable(user).map(User::getEnabled).orElse(true),
                 user.getRoles(), false), result);
     }
 

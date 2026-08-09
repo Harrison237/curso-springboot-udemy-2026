@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.harrison.curso.springboot.app</groupId>
 	<artifactId>crud-jpa</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>crud-jpa</name>
 	<description />
 	<url />

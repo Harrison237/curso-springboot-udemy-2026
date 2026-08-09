@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.harrison.curso.springboot.app.entities.Product;
+import com.harrison.curso.springboot.app.entities.Role;
 import com.harrison.curso.springboot.app.services.ProductService;
-import com.harrison.curso.springboot.app.validation.ProductValidation;
 
 import jakarta.validation.Valid;
 import tools.jackson.databind.json.JsonMapper;
@@ -31,20 +32,24 @@ public class ProductController {
 
     private final ProductService service;
 
-    private final ProductValidation validation;
+    // private final ProductValidation validation;
 
     ProductController(
-            ProductService service,
-            ProductValidation validation) {
+            ProductService service/*
+                                   * ,
+                                   * ProductValidation validation
+                                   */) {
         this.service = service;
-        this.validation = validation;
+        // this.validation = validation;
     }
 
+    @PreAuthorize("hasAnyRole('" + Role.ADMIN + "', '" + Role.USER + "')")
     @GetMapping
     public List<Product> list() {
         return service.findAll();
     }
 
+    @PreAuthorize("hasAnyRole('" + Role.ADMIN + "', '" + Role.USER + "')")
     @GetMapping("/{id}")
     public ResponseEntity<?> view(@PathVariable Long id) {
         Optional<Product> optionalProduct = service.findById(id);
@@ -55,6 +60,7 @@ public class ProductController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('" + Role.ADMIN + "')")
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody Product product, BindingResult result) {
         // validation.validate(product, result);
@@ -76,6 +82,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productSaved);
     }
 
+    @PreAuthorize("hasRole('" + Role.ADMIN + "')")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@Valid @RequestBody Product product, BindingResult result,
             @PathVariable Long id) {
@@ -88,6 +95,7 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('" + Role.ADMIN + "')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         Optional<Product> optionalProduct = service.delete(id);

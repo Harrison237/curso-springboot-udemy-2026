@@ -202,3 +202,17 @@ En este caso, el SECRET_KEY utilizado para generar el Jwt es dinámico, por lo q
   implementación más robusta de las validaciones
 - Me interesaría aprender sobre manejo de tokens vencidos a nivel de base de datos, aunque esto es un anti-patron ya que la validación 
   de los Jwt debería estar desacoplada de la persistencia (a lo mejor se puede hacer en caché también)
+- Qué pasa cuando se trabaja en un sistema distribuido? Acaso cada microservicio debe tener su propia implementación de Jwt?
+
+08-08-2026 (Parte 2)
+
+Validación de uso de rutas y métodos según roles
+Uso de anotación PreAuthorize directamente en métodos de controllers para validar el rol al intentar utilizar las rutas
+Uso de requestMatchers en filterChain para validación de rol en uso de rutas
+Configuración de cors para acceso a recursos desde frontend
+
+- La validación de roles en rutas me pareció interesante, pero parece algo engorroso al momento de tener que declararlo a nivel de ruta método.
+  Además qué pasa cuando se tienen permisos además de roles? Se puede hacer de forma masiva en lugar de tener que configurar ruta por ruta?
+- Misma pregunta que sobre Jwt, cómo se configura esta restricción sobre rutas en un sistema distribuido por microservicios?
+
+- Cierre de sección 13
