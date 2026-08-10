@@ -249,9 +249,15 @@ importante del despliegue.
 
 - Cierre de sección 15
 
-09-08-2026
+09-08-2026 (Parte 2)
 
 Despliegue de aplicativo en servidor tomcat 11 con compilación war (para volver a compilación jar hay que revertir este commit)
 La ruta base de la api se vuelve "crud-jpa/**" al ser tomcat un servidor para web
 
 - Cierre de sección 16
+
+10-08-2026 (Parte 1)
+
+Creación y configuracioń de proyecto de React
+
+- Toda la seccioń 17 es sobre la creación de una aplicación react para comunicarse con un backend de spring boot, luego me di cuenta que el nombre del curso es "Construye aplicaciones web con SpringBoot, Thymeleaf, React, Angular". No le estoy poniendo mucha atención, lo tengo al 1.25x y solo voy replicando el código, ya que sinceramente no me interesa aprender react, pero lo necesito para avanzar, así que X.
