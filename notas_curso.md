@@ -200,9 +200,11 @@ En este caso, el SECRET_KEY utilizado para generar el Jwt es dinámico, por lo q
   fue mover la lógica al service, a lo mejor algo acoplado a la implementación, pero sigue siendo lógica de negocio después de todo
 - La implementación de Jwt fue extensa, aunque ya la conocía de NestJs, Springboot cuenta con más restricciones aunque esto da una
   implementación más robusta de las validaciones
-- Me interesaría aprender sobre manejo de tokens vencidos a nivel de base de datos, aunque esto es un anti-patron ya que la validación 
+- Me interesaría aprender sobre manejo de tokens vencidos a nivel de base de datos, aunque esto es un anti-patron ya que la validación
   de los Jwt debería estar desacoplada de la persistencia (a lo mejor se puede hacer en caché también)
 - Qué pasa cuando se trabaja en un sistema distribuido? Acaso cada microservicio debe tener su propia implementación de Jwt?
+- Investigar sobre RBAC vs permissions vs ABAC
+- Investigar JWT + symmetric vs asymmetric signing
 
 08-08-2026 (Parte 2)
 
@@ -246,3 +248,10 @@ importante del despliegue.
 - Quiero hacer este mismo ejercicio mediante un aprovisionamiento con AWS CDK, montando un apigateway que redirija hacia una lambda y de ahí se vaya a un task montado en ECS (tal como se hace en el trabajo actualmente)
 
 - Cierre de sección 15
+
+09-08-2026
+
+Despliegue de aplicativo en servidor tomcat 11 con compilación war (para volver a compilación jar hay que revertir este commit)
+La ruta base de la api se vuelve "crud-jpa/**" al ser tomcat un servidor para web
+
+- Cierre de sección 16
