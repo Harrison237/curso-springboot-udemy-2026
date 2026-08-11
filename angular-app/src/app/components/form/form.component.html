@@ -1,0 +1,60 @@
+<form (ngSubmit)="onSubmit(productForm)" #productForm="ngForm">
+  <div class="my-2">
+    <label for="name">Name</label>
+    <input
+      class="form-control my-1"
+      placeholder="Name"
+      name="name"
+      id="name"
+      [(ngModel)]="product.name"
+      #name="ngModel"
+      required
+    />
+    @if (name.invalid && (name.dirty || name.touched)) {
+      <div class="alert alert-danger">El nombre es requerido</div>
+    }
+  </div>
+  <div class="my-2">
+    <label for="description">Description</label>
+    <input
+      class="form-control my-1"
+      placeholder="Description"
+      name="description"
+      id="description"
+      [(ngModel)]="product.description"
+      #description="ngModel"
+      required
+    />
+    @if (description.invalid && (description.dirty || description.touched)) {
+      <div class="alert alert-danger">La descripción es requerida</div>
+    }
+  </div>
+  <div class="my-2">
+    <label for="price">Price</label>
+    <input
+      type="number"
+      class="form-control my-1"
+      placeholder="Price"
+      name="price"
+      id="price"
+      [(ngModel)]="product.price"
+      #price="ngModel"
+      required
+    />
+    @if ((price.dirty || price.touched) && isNaN(price.control.value)) {
+      <div class="alert alert-danger">El precio es requerido</div>
+    }
+  </div>
+  <div>
+    <button
+      class="btn btn-primary my-2 mx-2"
+      type="submit"
+      [disabled]="!productForm.valid"
+    >
+      {{ product.id > 0 ? "Actualizar" : "Crear" }}
+    </button>
+    <button class="btn btn-success my-2 mx-2" type="button" (click)="clean(productForm)">
+      Limpiar
+    </button>
+  </div>
+</form>

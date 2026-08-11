@@ -261,3 +261,10 @@ La ruta base de la api se vuelve "crud-jpa/**" al ser tomcat un servidor para we
 Creación y configuracioń de proyecto de React
 
 - Toda la seccioń 17 es sobre la creación de una aplicación react para comunicarse con un backend de spring boot, luego me di cuenta que el nombre del curso es "Construye aplicaciones web con SpringBoot, Thymeleaf, React, Angular". No le estoy poniendo mucha atención, lo tengo al 1.25x y solo voy replicando el código, ya que sinceramente no me interesa aprender react, pero lo necesito para avanzar, así que X.
+
+10-08-2026 (Parte 2)
+
+Se creó un backend básico para conectarlo con la aplicación frontend de react, nada muy avanzado, unicamente comunicación entre frontend y backend y una pequeña configuración de CORS.
+Se hizo el mismo ejercicio con una aplicación de Angular, no hice nada más allá de lo que ya sé en el framework, pasé de utilizar Angular 22 por el uso de signals, de los que no conozco mucho y el enfoque no está en actualizar conocimientos de Angular, así que hice la App con Angular 19 y seguí el tuto casi al pie de la regla.
+
+- Cierre de sección 21
