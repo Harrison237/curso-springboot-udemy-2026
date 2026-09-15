@@ -1,10 +1,16 @@
 package com.harrison.springboot;
 
 import software.constructs.Construct;
+
+import com.harrison.springboot.resources.GlobalResources;
+
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 // import software.amazon.awscdk.Duration;
 // import software.amazon.awscdk.services.sqs.Queue;
+import software.amazon.awscdk.services.ecr.Repository;
+import software.amazon.awscdk.services.ecs.Cluster;
+import software.amazon.awscdk.services.ecs.FargateTaskDefinition;
 
 public class CdkDeployStack extends Stack {
     public CdkDeployStack(final Construct scope, final String id) {
@@ -13,12 +19,10 @@ public class CdkDeployStack extends Stack {
 
     public CdkDeployStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
-
-        // The code that defines your stack goes here
-
-        // example resource
-        // final Queue queue = Queue.Builder.create(this, "CdkDeployQueue")
-        //         .visibilityTimeout(Duration.seconds(300))
-        //         .build();
+        
+        Cluster cluster = Cluster.Builder.create(this, "SpringBootCourseECSCluster")
+                .vpc(GlobalResources.getDefaultVPC(this))
+                .clusterName("springboot-course-cluster")
+                .build();
     }
 }
