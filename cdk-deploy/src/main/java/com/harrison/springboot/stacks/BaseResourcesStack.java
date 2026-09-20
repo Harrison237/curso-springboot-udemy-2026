@@ -10,6 +10,7 @@ import com.harrison.springboot.resources.GlobalResources;
 
 import lombok.Getter;
 import software.amazon.awscdk.CfnOutput;
+import software.amazon.awscdk.CfnParameter;
 import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
@@ -49,12 +50,12 @@ public class BaseResourcesStack extends Stack {
     @Getter
     private final String dbConnectionString;
 
-    @Getter
-    // TODO: Fix Sonar Hint java:S1170
-    private final String dbUsername = "springboot";
+    public static final String DB_USERNAME = "springboot";
+
+    private static final String STRING_TEXT = "String";
 
     @Getter
-    private final String dbPassword = "sasa1234";
+    private final String dbPassword = System.getenv("DB_PASSWORD");
 
     public BaseResourcesStack(final Construct scope, final String id, StackProps props) throws IOException {
         super(scope, id, props);
@@ -91,24 +92,36 @@ public class BaseResourcesStack extends Stack {
         rdsSg.addIngressRule(ecsSg, Port.tcp(3306), "Allow ECS tasks to access RDS MySQL");
         rdsSg.addIngressRule(bastionSg, Port.tcp(3306), "Allow Bastion Instance to access RDS MySQL");
 
+        CfnParameter developmentClientCidr = CfnParameter.Builder.create(this, "DevelopmentClientCidr")
+                .type(STRING_TEXT)
+                .description("CIDR block permitted to connect to the bastion host via SSH")
+                .build();
+
         bastionSg.addIngressRule(
-                // TODO: Fix Sonar Hint java:S1313
-                Peer.ipv4("192.168.1.3/32"),
+                Peer.ipv4(developmentClientCidr.getValueAsString()),
                 Port.tcp(22),
                 "SSH from development client");
 
+        CfnParameter privateSubnetACidr = CfnParameter.Builder.create(this, "PrivateSubnetACidr")
+                .type(STRING_TEXT)
+                .description("CIDR block for private subnet A")
+                .build();
+
+        CfnParameter privateSubnetBCidr = CfnParameter.Builder.create(this, "PrivateSubnetBCidr")
+                .type(STRING_TEXT)
+                .description("CIDR block for private subnet B")
+                .build();
+
         Subnet privateSubnetA = Subnet.Builder.create(this, "PrivateSubnetA")
                 .vpcId(globalVpc.getVpcId())
-                // TODO: Fix Sonar Hint java:S1313
-                .cidrBlock("172.31.200.0/24")
+                .cidrBlock(privateSubnetACidr.getValueAsString())
                 .availabilityZone("us-east-1a")
                 .mapPublicIpOnLaunch(false)
                 .build();
 
         Subnet privateSubnetB = Subnet.Builder.create(this, "PrivateSubnetB")
                 .vpcId(globalVpc.getVpcId())
-                // TODO: Fix Sonar Hint java:S1313
-                .cidrBlock("172.31.201.0/24")
+                .cidrBlock(privateSubnetBCidr.getValueAsString())
                 .availabilityZone("us-east-1b")
                 .mapPublicIpOnLaunch(false)
                 .build();
@@ -129,7 +142,7 @@ public class BaseResourcesStack extends Stack {
                 .engine(DatabaseClusterEngine.auroraMysql(AuroraMysqlClusterEngineProps
                         .builder().version(AuroraMysqlEngineVersion.VER_3_12_0).build()))
                 .credentials(
-                        Credentials.fromPassword(dbUsername, SecretValue.unsafePlainText(dbPassword)))
+                        Credentials.fromPassword(DB_USERNAME, SecretValue.unsafePlainText(dbPassword)))
                 .writer(
                         ClusterInstance.provisioned("writer", ProvisionedClusterInstanceProps.builder()
                                 .publiclyAccessible(false)

@@ -14,6 +14,8 @@ import software.amazon.awscdk.services.ec2.ISecurityGroup;
 import software.amazon.awscdk.services.ec2.IVpc;
 import software.amazon.awscdk.services.ec2.SecurityGroup;
 import software.amazon.awscdk.services.ec2.SubnetSelection;
+import software.amazon.awscdk.services.ecr.IRepository;
+import software.amazon.awscdk.services.ecr.Repository;
 import software.amazon.awscdk.services.ecs.CapacityProviderStrategy;
 import software.amazon.awscdk.services.ecs.Cluster;
 import software.amazon.awscdk.services.ecs.ContainerDefinition;
@@ -59,10 +61,12 @@ public class ECSServiceStack extends Stack {
                 .memoryLimitMiB(1024)
                 .build();
 
+        IRepository repository = Repository.fromRepositoryName(this, "ImportedSpringBootCourseECRRepository",
+                "springboot-course-repository");
+
         ContainerDefinition containerTask = taskDefinition.addContainer("springboot-course-app",
                 ContainerDefinitionOptions.builder()
-                        .image(ContainerImage.fromRegistry(
-                                "192.168.1.10:5101/000000000000/us-east-1/springboot-course-repository:v2"))
+                        .image(ContainerImage.fromEcrRepository(repository, "v2"))
                         .environment(Map.of(
                                 "SPRING_DATASOURCE_URL", rdsEndpoint,
                                 "SPRING_DATASOURCE_USERNAME", specificProps.databaseUsername(),

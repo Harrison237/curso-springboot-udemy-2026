@@ -41,7 +41,7 @@ public class CdkDeployApp {
                     baseResourcesStack.getPrivateSubnets(),
                     // baseResourcesStack.getLbSecurityGroup(),
                     // baseResourcesStack.getDbConnectionString(),
-                    baseResourcesStack.getDbUsername(),
+                    BaseResourcesStack.DB_USERNAME,
                     baseResourcesStack.getDbPassword());
             new ECSServiceStack(app, "ECSServiceStack", generalStackProps, ecsStackServiceProps);
         } catch (Exception e) {
