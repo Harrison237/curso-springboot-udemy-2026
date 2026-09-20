@@ -3,9 +3,11 @@ package com.harrison.springboot.stacks;
 import java.util.Arrays;
 import java.util.List;
 
+import com.harrison.springboot.resources.GlobalConfiguration;
 import com.harrison.springboot.resources.GlobalResources;
 
 import lombok.Getter;
+import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
@@ -36,6 +38,12 @@ public class BaseResourcesStack extends Stack {
 
     @Getter
     private final String dbConnectionString;
+
+    @Getter
+    private final String dbUsername = "springboot";
+
+    @Getter
+    private final String dbPassword = "sasa1234";
 
     public BaseResourcesStack(final Construct scope, final String id, StackProps props) {
         super(scope, id, props);
@@ -93,21 +101,38 @@ public class BaseResourcesStack extends Stack {
                 .engine(DatabaseClusterEngine.auroraMysql(AuroraMysqlClusterEngineProps
                         .builder().version(AuroraMysqlEngineVersion.VER_3_12_0).build()))
                 .credentials(
-                        Credentials.fromPassword("springboot", SecretValue.unsafePlainText("sasa1234")))
+                        Credentials.fromPassword(dbUsername, SecretValue.unsafePlainText(dbPassword)))
                 .writer(
                         ClusterInstance.provisioned("writer", ProvisionedClusterInstanceProps.builder()
                                 .publiclyAccessible(false)
                                 .build()))
                 .vpc(globalVpc)
                 .subnetGroup(dbPrivateSubnetGroup)
-                .port(null)
+                .port(3306)
                 .securityGroups(Arrays.asList(rdsSg))
                 .build();
 
         privateSubnets = List.of(
                 privateSubnetA,
                 privateSubnetB);
+
+        CfnOutput.Builder.create(this, "AlbSecurityGroupId")
+                .value(albSg.getSecurityGroupId())
+                .exportName(GlobalConfiguration.BASE_RESOURCES_ALB_SG_EXPORT_NAME)
+                .build();
+
+        CfnOutput.Builder.create(this, "RdsEndpoint")
+                .value(String.format(
+                        "jdbc:mysql://%s:%s",
+                        cluster.getClusterEndpoint().getHostname(),
+                        "3306"))
+                .exportName(GlobalConfiguration.BASE_RESOURCES_RDS_CONNECTION_STRING)
+                .build();
+
         lbSecurityGroup = albSg;
-        dbConnectionString = "jdbc:mysql://" + cluster.getClusterEndpoint().toString() + ":3306";
+        dbConnectionString = String.format(
+                "jdbc:mysql://%s:%s",
+                cluster.getClusterEndpoint().getHostname(),
+                "3306");
     }
 }

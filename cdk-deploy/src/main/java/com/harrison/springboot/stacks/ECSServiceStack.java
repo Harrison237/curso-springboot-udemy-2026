@@ -1,21 +1,28 @@
 package com.harrison.springboot.stacks;
 
 import java.util.List;
+import java.util.Map;
 
-import com.harrison.springboot.models.ECSStackServiceProps;
+import com.harrison.springboot.models.ECSServiceStackProps;
+import com.harrison.springboot.resources.GlobalConfiguration;
 import com.harrison.springboot.resources.GlobalResources;
 
+import software.amazon.awscdk.Fn;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.services.ec2.ISecurityGroup;
 import software.amazon.awscdk.services.ec2.IVpc;
+import software.amazon.awscdk.services.ec2.SecurityGroup;
 import software.amazon.awscdk.services.ec2.SubnetSelection;
 import software.amazon.awscdk.services.ecs.CapacityProviderStrategy;
 import software.amazon.awscdk.services.ecs.Cluster;
+import software.amazon.awscdk.services.ecs.ContainerDefinition;
 import software.amazon.awscdk.services.ecs.ContainerImage;
 import software.amazon.awscdk.services.ecs.FargateService;
 import software.amazon.awscdk.services.ecs.ContainerDefinitionOptions;
 import software.amazon.awscdk.services.ecs.FargateTaskDefinition;
 import software.amazon.awscdk.services.ecs.LoadBalancerTargetOptions;
+import software.amazon.awscdk.services.ecs.PortMapping;
 import software.amazon.awscdk.services.elasticloadbalancingv2.AddApplicationTargetGroupsProps;
 import software.amazon.awscdk.services.elasticloadbalancingv2.ApplicationListener;
 import software.amazon.awscdk.services.elasticloadbalancingv2.ApplicationLoadBalancer;
@@ -28,10 +35,15 @@ import software.constructs.Construct;
 
 public class ECSServiceStack extends Stack {
     public ECSServiceStack(final Construct scope, final String id, StackProps props,
-            ECSStackServiceProps specificProps) {
+            ECSServiceStackProps specificProps) {
         super(scope, id, props);
 
+        String albSecurityGroupId = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_ALB_SG_EXPORT_NAME);
+        String rdsEndpoint = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_RDS_CONNECTION_STRING);
+
         IVpc globalVpc = GlobalResources.getDefaultVPC(this);
+        ISecurityGroup albSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedAlbSecurityGroup",
+                albSecurityGroupId);
 
         Cluster cluster = Cluster.Builder.create(this, "SpringBootCourseECSCluster")
                 .clusterName("springboot-course-cluster")
@@ -44,9 +56,19 @@ public class ECSServiceStack extends Stack {
                 .memoryLimitMiB(1024)
                 .build();
 
-        taskDefinition.addContainer("springboot-course-app", ContainerDefinitionOptions.builder()
-                .image(ContainerImage
-                        .fromRegistry("192.168.1.10:5101/000000000000/us-east-1/springboot-course-repository:v1"))
+        ContainerDefinition containerTask = taskDefinition.addContainer("springboot-course-app",
+                ContainerDefinitionOptions.builder()
+                        .image(ContainerImage.fromRegistry(
+                                "192.168.1.10:5101/000000000000/us-east-1/springboot-course-repository:v2"))
+                        .environment(Map.of(
+                                "SPRING_DATASOURCE_URL", rdsEndpoint,
+                                "SPRING_DATASOURCE_USERNAME", specificProps.databaseUsername(),
+                                "SPRING_DATASOURCE_PASSWORD", specificProps.databasePassword()))
+                        .build());
+
+        containerTask.addPortMappings(PortMapping.builder()
+                .containerPort(8080)
+                .hostPort(8080)
                 .build());
 
         FargateService service = FargateService.Builder.create(this, "SpringBootCourseFargateService")
@@ -70,7 +92,7 @@ public class ECSServiceStack extends Stack {
         ApplicationLoadBalancer alb = ApplicationLoadBalancer.Builder.create(this, "SpringBootCourseECSALB")
                 .vpc(globalVpc)
                 .internetFacing(true)
-                .securityGroup(specificProps.lbSecurityGroup())
+                .securityGroup(albSecurityGroup)
                 .build();
 
         ApplicationListener listener = alb.addListener("SpringBootCourseECSALBListener",

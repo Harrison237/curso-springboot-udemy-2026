@@ -6,36 +6,44 @@ import software.amazon.awscdk.Environment;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.Validations;
 
-import com.harrison.springboot.models.ECSStackServiceProps;
+import com.harrison.springboot.models.ECSServiceStackProps;
 import com.harrison.springboot.stacks.BaseResourcesStack;
 import com.harrison.springboot.stacks.ECSServiceStack;
 
 public class CdkDeployApp {
-    public static void main(final String[] args) {
-        App app = new App();
+        public static void main(final String[] args) {
+                App app = new App();
 
-        Validations.of(app).acknowledge(
-                Acknowledgment.builder()
-                        .id("CloudFormation-Validate::E1151")
-                        .reason("Local AWS Emulator uses vpc-default as a valid VPC id")
-                        .build());
+                Validations.of(app).acknowledge(
+                                Acknowledgment.builder()
+                                                .id("CloudFormation-Validate::E1151")
+                                                .reason("Local AWS Emulator uses vpc-default as a valid VPC id")
+                                                .build(),
+                                Acknowledgment.builder()
+                                                .id("CloudFormation-Validate::E1154")
+                                                .reason("Local AWS Emulator uses subnet-default-<identifier> as valid subnet names")
+                                                .build());
 
-        Environment env = Environment.builder()
-                .account("000000000000")
-                .region("us-east-1")
-                .build();
+                Environment env = Environment.builder()
+                                .account("000000000000")
+                                .region("us-east-1")
+                                .build();
 
-        StackProps generalStackProps = StackProps.builder()
-                .env(env)
-                .build();
+                StackProps generalStackProps = StackProps.builder()
+                                .env(env)
+                                .build();
 
-        BaseResourcesStack baseResourcesStack = new BaseResourcesStack(app, "BaseResourcesStack", generalStackProps);
+                BaseResourcesStack baseResourcesStack = new BaseResourcesStack(app, "BaseResourcesStack",
+                                generalStackProps);
 
-        ECSStackServiceProps ecsStackServiceProps = new ECSStackServiceProps(baseResourcesStack.getPrivateSubnets(),
-                baseResourcesStack.getLbSecurityGroup(),
-                baseResourcesStack.getDbConnectionString());
-        new ECSServiceStack(app, "ECSServiceStack", generalStackProps, ecsStackServiceProps);
+                ECSServiceStackProps ecsStackServiceProps = new ECSServiceStackProps(
+                                baseResourcesStack.getPrivateSubnets(),
+                                // baseResourcesStack.getLbSecurityGroup(),
+                                // baseResourcesStack.getDbConnectionString(),
+                                baseResourcesStack.getDbUsername(),
+                                baseResourcesStack.getDbPassword());
+                new ECSServiceStack(app, "ECSServiceStack", generalStackProps, ecsStackServiceProps);
 
-        app.synth();
-    }
+                app.synth();
+        }
 }
