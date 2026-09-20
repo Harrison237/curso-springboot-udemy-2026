@@ -50,6 +50,7 @@ public class BaseResourcesStack extends Stack {
     private final String dbConnectionString;
 
     @Getter
+    // TODO: Fix Sonar Hint java:S1170
     private final String dbUsername = "springboot";
 
     @Getter
@@ -91,12 +92,14 @@ public class BaseResourcesStack extends Stack {
         rdsSg.addIngressRule(bastionSg, Port.tcp(3306), "Allow Bastion Instance to access RDS MySQL");
 
         bastionSg.addIngressRule(
+                // TODO: Fix Sonar Hint java:S1313
                 Peer.ipv4("192.168.1.3/32"),
                 Port.tcp(22),
                 "SSH from development client");
 
         Subnet privateSubnetA = Subnet.Builder.create(this, "PrivateSubnetA")
                 .vpcId(globalVpc.getVpcId())
+                // TODO: Fix Sonar Hint java:S1313
                 .cidrBlock("172.31.200.0/24")
                 .availabilityZone("us-east-1a")
                 .mapPublicIpOnLaunch(false)
@@ -104,6 +107,7 @@ public class BaseResourcesStack extends Stack {
 
         Subnet privateSubnetB = Subnet.Builder.create(this, "PrivateSubnetB")
                 .vpcId(globalVpc.getVpcId())
+                // TODO: Fix Sonar Hint java:S1313
                 .cidrBlock("172.31.201.0/24")
                 .availabilityZone("us-east-1b")
                 .mapPublicIpOnLaunch(false)
@@ -116,7 +120,7 @@ public class BaseResourcesStack extends Stack {
                 .vpcSubnets(SubnetSelection.builder().subnets(List.of(privateSubnetA, privateSubnetB)).build())
                 .build();
 
-        Repository repository = Repository.Builder.create(this, "SpringBootCourseECRRepository")
+        Repository.Builder.create(this, "SpringBootCourseECRRepository")
                 .repositoryName("springboot-course-repository")
                 .build();
 
@@ -138,7 +142,7 @@ public class BaseResourcesStack extends Stack {
 
         IKeyPair sshKeyPair = KeyPair.fromKeyPairName(this, "ImportedKeyPair", "springboot-course-bastion-key");
 
-        Instance bastion = Instance.Builder.create(this, "SpringBootCourseBastion")
+        Instance.Builder.create(this, "SpringBootCourseBastion")
                 .vpc(globalVpc)
                 .vpcSubnets(SubnetSelection.builder()
                         .subnetType(SubnetType.PUBLIC)

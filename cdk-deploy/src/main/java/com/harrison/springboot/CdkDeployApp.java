@@ -45,7 +45,7 @@ public class CdkDeployApp {
                     baseResourcesStack.getDbPassword());
             new ECSServiceStack(app, "ECSServiceStack", generalStackProps, ecsStackServiceProps);
         } catch (Exception e) {
-            // TODO: handle exception
+            throw new RuntimeException("Failed to create CDK stacks", e);
         }
 
         app.synth();
