@@ -1,7 +1,9 @@
 package com.harrison.springboot.stacks;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.harrison.springboot.resources.GlobalConfiguration;
 import com.harrison.springboot.resources.GlobalResources;
@@ -11,6 +13,7 @@ import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.Token;
 import software.amazon.awscdk.services.rds.AuroraMysqlClusterEngineProps;
 import software.amazon.awscdk.services.rds.AuroraMysqlEngineVersion;
 import software.amazon.awscdk.services.rds.ClusterInstance;
@@ -19,12 +22,19 @@ import software.amazon.awscdk.services.rds.DatabaseCluster;
 import software.amazon.awscdk.services.rds.DatabaseClusterEngine;
 import software.amazon.awscdk.services.rds.ProvisionedClusterInstanceProps;
 import software.amazon.awscdk.services.rds.SubnetGroup;
+import software.amazon.awscdk.services.ec2.IKeyPair;
+import software.amazon.awscdk.services.ec2.IMachineImage;
 import software.amazon.awscdk.services.ec2.IVpc;
+import software.amazon.awscdk.services.ec2.Instance;
+import software.amazon.awscdk.services.ec2.InstanceType;
+import software.amazon.awscdk.services.ec2.KeyPair;
+import software.amazon.awscdk.services.ec2.MachineImage;
 import software.amazon.awscdk.services.ec2.Peer;
 import software.amazon.awscdk.services.ec2.Port;
 import software.amazon.awscdk.services.ec2.SecurityGroup;
 import software.amazon.awscdk.services.ec2.Subnet;
 import software.amazon.awscdk.services.ec2.SubnetSelection;
+import software.amazon.awscdk.services.ec2.SubnetType;
 import software.amazon.awscdk.services.ecr.Repository;
 import software.constructs.Construct;
 
@@ -45,10 +55,12 @@ public class BaseResourcesStack extends Stack {
     @Getter
     private final String dbPassword = "sasa1234";
 
-    public BaseResourcesStack(final Construct scope, final String id, StackProps props) {
+    public BaseResourcesStack(final Construct scope, final String id, StackProps props) throws IOException {
         super(scope, id, props);
 
         IVpc globalVpc = GlobalResources.getDefaultVPC(this);
+        IMachineImage generalAmi = MachineImage
+                .genericLinux(Map.of(props.getEnv().getRegion(), "ami-0abcdef1234567891"));
 
         SecurityGroup albSg = SecurityGroup.Builder.create(this, "SpringBootCourseALBSecurityGroup")
                 .securityGroupName("springboot-course-alb-sg")
@@ -64,12 +76,24 @@ public class BaseResourcesStack extends Stack {
                 .build();
         ecsSg.addIngressRule(albSg, Port.tcp(8080));
 
+        SecurityGroup bastionSg = SecurityGroup.Builder.create(this, "SpringBootCourseBastionSecurityGroup")
+                .securityGroupName("springboot-course-bastion-sg")
+                .vpc(globalVpc)
+                .allowAllOutbound(true)
+                .build();
+
         SecurityGroup rdsSg = SecurityGroup.Builder.create(this, "SpringBootCourseRDSSecurityGroup")
                 .securityGroupName("springboot-course-rds-sg")
                 .vpc(globalVpc)
                 .allowAllOutbound(true)
                 .build();
         rdsSg.addIngressRule(ecsSg, Port.tcp(3306), "Allow ECS tasks to access RDS MySQL");
+        rdsSg.addIngressRule(bastionSg, Port.tcp(3306), "Allow Bastion Instance to access RDS MySQL");
+
+        bastionSg.addIngressRule(
+                Peer.ipv4("192.168.1.3/32"),
+                Port.tcp(22),
+                "SSH from development client");
 
         Subnet privateSubnetA = Subnet.Builder.create(this, "PrivateSubnetA")
                 .vpcId(globalVpc.getVpcId())
@@ -112,20 +136,42 @@ public class BaseResourcesStack extends Stack {
                 .securityGroups(Arrays.asList(rdsSg))
                 .build();
 
+        IKeyPair sshKeyPair = KeyPair.fromKeyPairName(this, "ImportedKeyPair", "springboot-course-bastion-key");
+
+        Instance bastion = Instance.Builder.create(this, "SpringBootCourseBastion")
+                .vpc(globalVpc)
+                .vpcSubnets(SubnetSelection.builder()
+                        .subnetType(SubnetType.PUBLIC)
+                        .build())
+                .instanceType(new InstanceType("t3.micro"))
+                .machineImage(generalAmi)
+                .securityGroup(bastionSg)
+                .keyPair(sshKeyPair)
+                .associatePublicIpAddress(true)
+                .build();
+
         privateSubnets = List.of(
                 privateSubnetA,
                 privateSubnetB);
+
+        String rdsPort = Token.asString(cluster.getClusterEndpoint().getPort());
 
         CfnOutput.Builder.create(this, "AlbSecurityGroupId")
                 .value(albSg.getSecurityGroupId())
                 .exportName(GlobalConfiguration.BASE_RESOURCES_ALB_SG_EXPORT_NAME)
                 .build();
 
+        CfnOutput.Builder.create(this, "EcsSecurityGroupId")
+                .value(ecsSg.getSecurityGroupId())
+                .exportName(GlobalConfiguration.BASE_RESOURCES_ECS_SG_EXPORT_NAME)
+                .build();
+
         CfnOutput.Builder.create(this, "RdsEndpoint")
                 .value(String.format(
-                        "jdbc:mysql://%s:%s",
+                        "jdbc:mysql://%s:%s/%s",
                         cluster.getClusterEndpoint().getHostname(),
-                        "3306"))
+                        rdsPort,
+                        "db_jpa_crud?createDatabaseIfNotExist=true"))
                 .exportName(GlobalConfiguration.BASE_RESOURCES_RDS_CONNECTION_STRING)
                 .build();
 

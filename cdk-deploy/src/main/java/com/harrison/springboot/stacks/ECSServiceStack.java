@@ -39,11 +39,14 @@ public class ECSServiceStack extends Stack {
         super(scope, id, props);
 
         String albSecurityGroupId = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_ALB_SG_EXPORT_NAME);
+        String ecsSecurityGroupId = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_ECS_SG_EXPORT_NAME);
         String rdsEndpoint = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_RDS_CONNECTION_STRING);
 
         IVpc globalVpc = GlobalResources.getDefaultVPC(this);
         ISecurityGroup albSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedAlbSecurityGroup",
                 albSecurityGroupId);
+        ISecurityGroup ecsSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedecsSecurityGroup",
+                ecsSecurityGroupId);
 
         Cluster cluster = Cluster.Builder.create(this, "SpringBootCourseECSCluster")
                 .clusterName("springboot-course-cluster")
@@ -75,6 +78,7 @@ public class ECSServiceStack extends Stack {
                 .vpcSubnets(SubnetSelection.builder().subnets(specificProps.privateSubnets()).build())
                 .cluster(cluster)
                 .taskDefinition(taskDefinition)
+                .securityGroups(List.of(ecsSecurityGroup))
                 .minHealthyPercent(100)
                 .desiredCount(1)
                 .capacityProviderStrategies(List.of(
