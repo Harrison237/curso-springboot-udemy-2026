@@ -1,5 +1,5 @@
 {
-  "vpc-provider:account=000000000000:filter.isDefault=true:region=us-east-1:returnAsymmetricSubnets=true": {
+  "vpc-provider:account=000000000000:filter.isDefault=true:filter.owner-id=000000000000:region=us-east-1:returnAsymmetricSubnets=true": {
     "vpcId": "vpc-default",
     "vpcCidrBlock": "172.31.0.0/16",
     "ownerAccountId": "000000000000",

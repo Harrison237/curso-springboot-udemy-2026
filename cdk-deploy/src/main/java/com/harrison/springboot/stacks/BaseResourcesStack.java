@@ -1,15 +1,113 @@
 package com.harrison.springboot.stacks;
 
+import java.util.Arrays;
+import java.util.List;
+
+import com.harrison.springboot.resources.GlobalResources;
+
+import lombok.Getter;
+import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
+import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.services.rds.AuroraMysqlClusterEngineProps;
+import software.amazon.awscdk.services.rds.AuroraMysqlEngineVersion;
+import software.amazon.awscdk.services.rds.ClusterInstance;
+import software.amazon.awscdk.services.rds.Credentials;
+import software.amazon.awscdk.services.rds.DatabaseCluster;
+import software.amazon.awscdk.services.rds.DatabaseClusterEngine;
+import software.amazon.awscdk.services.rds.ProvisionedClusterInstanceProps;
+import software.amazon.awscdk.services.rds.SubnetGroup;
+import software.amazon.awscdk.services.ec2.IVpc;
+import software.amazon.awscdk.services.ec2.Peer;
+import software.amazon.awscdk.services.ec2.Port;
+import software.amazon.awscdk.services.ec2.SecurityGroup;
+import software.amazon.awscdk.services.ec2.Subnet;
+import software.amazon.awscdk.services.ec2.SubnetSelection;
 import software.amazon.awscdk.services.ecr.Repository;
 import software.constructs.Construct;
 
 public class BaseResourcesStack extends Stack {
-    public BaseResourcesStack(final Construct scope, final String id) {
-        super(scope, id, null);
 
-        Repository repository = Repository.Builder.create(this, "SpringBootCourseRepository")
+    @Getter
+    private final List<Subnet> privateSubnets;
+
+    @Getter
+    private final SecurityGroup lbSecurityGroup;
+
+    @Getter
+    private final String dbConnectionString;
+
+    public BaseResourcesStack(final Construct scope, final String id, StackProps props) {
+        super(scope, id, props);
+
+        IVpc globalVpc = GlobalResources.getDefaultVPC(this);
+
+        SecurityGroup albSg = SecurityGroup.Builder.create(this, "SpringBootCourseALBSecurityGroup")
+                .securityGroupName("springboot-course-alb-sg")
+                .vpc(globalVpc)
+                .allowAllOutbound(true)
+                .build();
+        albSg.addIngressRule(Peer.anyIpv4(), Port.tcp(80), "Allow HTTP traffic from Internet");
+
+        SecurityGroup ecsSg = SecurityGroup.Builder.create(this, "SpringBootCourseECSSecurityGroup")
+                .vpc(globalVpc)
+                .description("Security group for ECS Fargate tasks")
+                .allowAllOutbound(true)
+                .build();
+        ecsSg.addIngressRule(albSg, Port.tcp(8080));
+
+        SecurityGroup rdsSg = SecurityGroup.Builder.create(this, "SpringBootCourseRDSSecurityGroup")
+                .securityGroupName("springboot-course-rds-sg")
+                .vpc(globalVpc)
+                .allowAllOutbound(true)
+                .build();
+        rdsSg.addIngressRule(ecsSg, Port.tcp(3306), "Allow ECS tasks to access RDS MySQL");
+
+        Subnet privateSubnetA = Subnet.Builder.create(this, "PrivateSubnetA")
+                .vpcId(globalVpc.getVpcId())
+                .cidrBlock("172.31.200.0/24")
+                .availabilityZone("us-east-1a")
+                .mapPublicIpOnLaunch(false)
+                .build();
+
+        Subnet privateSubnetB = Subnet.Builder.create(this, "PrivateSubnetB")
+                .vpcId(globalVpc.getVpcId())
+                .cidrBlock("172.31.201.0/24")
+                .availabilityZone("us-east-1b")
+                .mapPublicIpOnLaunch(false)
+                .build();
+
+        SubnetGroup dbPrivateSubnetGroup = SubnetGroup.Builder.create(this, "DBPrivateSubnetGroup")
+                .subnetGroupName("db-private-subnet-group")
+                .description("Private subnet group for DB Instance")
+                .vpc(globalVpc)
+                .vpcSubnets(SubnetSelection.builder().subnets(List.of(privateSubnetA, privateSubnetB)).build())
+                .build();
+
+        Repository repository = Repository.Builder.create(this, "SpringBootCourseECRRepository")
                 .repositoryName("springboot-course-repository")
                 .build();
+
+        DatabaseCluster cluster = DatabaseCluster.Builder.create(this, "SpringBootCourseDBCluster")
+                .clusterIdentifier("springboot-course-db-cluster")
+                .engine(DatabaseClusterEngine.auroraMysql(AuroraMysqlClusterEngineProps
+                        .builder().version(AuroraMysqlEngineVersion.VER_3_12_0).build()))
+                .credentials(
+                        Credentials.fromPassword("springboot", SecretValue.unsafePlainText("sasa1234")))
+                .writer(
+                        ClusterInstance.provisioned("writer", ProvisionedClusterInstanceProps.builder()
+                                .publiclyAccessible(false)
+                                .build()))
+                .vpc(globalVpc)
+                .subnetGroup(dbPrivateSubnetGroup)
+                .port(null)
+                .securityGroups(Arrays.asList(rdsSg))
+                .build();
+
+        privateSubnets = List.of(
+                privateSubnetA,
+                privateSubnetB);
+        lbSecurityGroup = albSg;
+        dbConnectionString = "jdbc:mysql://" + cluster.getClusterEndpoint().toString() + ":3306";
     }
 }

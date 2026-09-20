@@ -12,6 +12,8 @@ public abstract class GlobalResources {
     public static IVpc getDefaultVPC(Construct scope) {
         return Vpc.fromLookup(scope, "DefaultVpc",
                 VpcLookupOptions.builder()
+                        .region("us-east-1")
+                        .ownerAccountId("000000000000")
                         .isDefault(true)
                         .build());
     }
