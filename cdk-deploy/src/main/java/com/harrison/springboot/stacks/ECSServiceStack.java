@@ -8,6 +8,7 @@ import com.harrison.springboot.resources.GlobalConfiguration;
 import com.harrison.springboot.resources.GlobalResources;
 
 import software.amazon.awscdk.Fn;
+import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.ec2.ISecurityGroup;
@@ -16,6 +17,7 @@ import software.amazon.awscdk.services.ec2.SecurityGroup;
 import software.amazon.awscdk.services.ec2.SubnetSelection;
 import software.amazon.awscdk.services.ecr.IRepository;
 import software.amazon.awscdk.services.ecr.Repository;
+import software.amazon.awscdk.services.ecs.AwsLogDriverProps;
 import software.amazon.awscdk.services.ecs.CapacityProviderStrategy;
 import software.amazon.awscdk.services.ecs.Cluster;
 import software.amazon.awscdk.services.ecs.ContainerDefinition;
@@ -24,6 +26,7 @@ import software.amazon.awscdk.services.ecs.FargateService;
 import software.amazon.awscdk.services.ecs.ContainerDefinitionOptions;
 import software.amazon.awscdk.services.ecs.FargateTaskDefinition;
 import software.amazon.awscdk.services.ecs.LoadBalancerTargetOptions;
+import software.amazon.awscdk.services.ecs.LogDriver;
 import software.amazon.awscdk.services.ecs.PortMapping;
 import software.amazon.awscdk.services.elasticloadbalancingv2.AddApplicationTargetGroupsProps;
 import software.amazon.awscdk.services.elasticloadbalancingv2.ApplicationListener;
@@ -33,6 +36,8 @@ import software.amazon.awscdk.services.elasticloadbalancingv2.ApplicationTargetG
 import software.amazon.awscdk.services.elasticloadbalancingv2.BaseApplicationListenerProps;
 import software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck;
 import software.amazon.awscdk.services.elasticloadbalancingv2.TargetType;
+import software.amazon.awscdk.services.logs.LogGroup;
+import software.amazon.awscdk.services.logs.RetentionDays;
 import software.constructs.Construct;
 
 public class ECSServiceStack extends Stack {
@@ -49,6 +54,8 @@ public class ECSServiceStack extends Stack {
                 albSecurityGroupId);
         ISecurityGroup ecsSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedecsSecurityGroup",
                 ecsSecurityGroupId);
+        IRepository repository = Repository.fromRepositoryName(this, "ImportedSpringBootCourseECRRepository",
+                "springboot-course-repository");
 
         Cluster cluster = Cluster.Builder.create(this, "SpringBootCourseECSCluster")
                 .clusterName("springboot-course-cluster")
@@ -61,8 +68,16 @@ public class ECSServiceStack extends Stack {
                 .memoryLimitMiB(1024)
                 .build();
 
-        IRepository repository = Repository.fromRepositoryName(this, "ImportedSpringBootCourseECRRepository",
-                "springboot-course-repository");
+        LogGroup ecsLogGroup = LogGroup.Builder.create(this, "SpringBootCourseEcsTaskLogGroup")
+                .logGroupName("/springboot-course/ecs/tasks")
+                .retention(RetentionDays.ONE_WEEK)
+                .removalPolicy(RemovalPolicy.DESTROY)
+                .build();
+
+        LogDriver logDriver = LogDriver.awsLogs(AwsLogDriverProps.builder()
+                .logGroup(ecsLogGroup)
+                .streamPrefix("springboot")
+                .build());
 
         ContainerDefinition containerTask = taskDefinition.addContainer("springboot-course-app",
                 ContainerDefinitionOptions.builder()
@@ -71,6 +86,7 @@ public class ECSServiceStack extends Stack {
                                 "SPRING_DATASOURCE_URL", rdsEndpoint,
                                 "SPRING_DATASOURCE_USERNAME", specificProps.databaseUsername(),
                                 "SPRING_DATASOURCE_PASSWORD", specificProps.databasePassword()))
+                        .logging(logDriver)
                         .build());
 
         containerTask.addPortMappings(PortMapping.builder()
