@@ -156,6 +156,7 @@ public class BaseResourcesStack extends Stack {
         IKeyPair sshKeyPair = KeyPair.fromKeyPairName(this, "ImportedKeyPair", "springboot-course-bastion-key");
 
         Instance.Builder.create(this, "SpringBootCourseBastion")
+                .instanceName("springboot-course-bastion-instance")
                 .vpc(globalVpc)
                 .vpcSubnets(SubnetSelection.builder()
                         .subnetType(SubnetType.PUBLIC)

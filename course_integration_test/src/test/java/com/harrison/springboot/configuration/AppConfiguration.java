@@ -26,6 +26,14 @@ public final class AppConfiguration {
         return requiredProperty("app.content.type");
     }
 
+    public String loginUsername() {
+        return requiredProperty("app.valid.username");
+    }
+
+    public String loginPassword() {
+        return requiredProperty("app.valid.password");
+    }
+
     private void loadProperties() {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("app.properties")) {
             if (input == null) {
