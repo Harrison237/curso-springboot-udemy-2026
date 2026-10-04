@@ -1,13 +1,17 @@
 package com.harrison.springboot.steps;
 
 import com.harrison.springboot.api.BaseApi;
+import com.harrison.springboot.configuration.constants.ProductConstants;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.response.Response;
 import net.serenitybdd.rest.SerenityRest;
 
+import static org.hamcrest.Matchers.blankOrNullString;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -70,9 +74,45 @@ public class ApiStepDefinitions {
     @Then("la respuesta debe ser una lista no vacia")
     public void verifyResponseList() {
         SerenityRest.lastResponse()
-            .then()
-            .body(is(not(emptyArray())));
+                .then()
+                .body(is(not(emptyArray())));
     }
 
+    @When("realizo una solicitud de crear un producto con los siguientes datos:")
+    public void createProduct(DataTable dataTable) {
+        String sku = dataTable.cell(1, 0);
+        String name = dataTable.cell(1, 1);
+        String desc = dataTable.cell(1, 2);
+        String price = dataTable.cell(1, 3);
 
+        String body = ProductConstants.makeProductBodyWithoutId(sku, name, desc, price);
+        baseApi.makePost("/api/products", body, true);
+    }
+
+    @Then("la respuesta debe contener un id valido para guardarlo con la clave {string}")
+    public void verifyResponseContainsIdAndStore(String key) {
+        Integer id = SerenityRest.lastResponse()
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        assertNotNull(id);
+        assertTrue(id > 0);
+
+        baseApi.storeValue(key, id.toString());
+    }
+
+    @Then("verifico que el producto creado con el id guardado {string} tenga el nombre {string} y el precio {int}")
+    public void verifyCreatedProduct(String idKey, String name, Integer price) {
+        String id = baseApi.getStoredValue(idKey)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No se encontró la entrada '" + idKey + "' en el store global"));
+
+        baseApi.makeGet("/api/products/" + id, true)
+                .then()
+                .statusCode(200)
+                .body("name", equalTo(name))
+                .body("price", equalTo(price));
+    }
 }

@@ -15,8 +15,8 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 @SelectPackages("features")
 // Configuración para debugging
 // @SelectClasspathResource(
-//     value = "features/api/status.feature",
-//     line = 18
+//     value = "features/api/products.feature",
+//     line = 17
 // )
 @ConfigurationParameter(
     key = GLUE_PROPERTY_NAME,
