@@ -45,7 +45,6 @@ public class BaseApi {
                 .baseUri(configuration.baseUri())
                 .contentType(configuration.contentType())
                 .body(body)
-                .log().all()
                 .when()
                 .post("/login");
     }
@@ -72,5 +71,9 @@ public class BaseApi {
         System.out.println(response.statusCode());
 
         token = response.jsonPath().getString("token");
+    }
+
+    public String buildBodyWithIncorrectProperties() {
+        return String.format(LOGIN_BODY_TEMPLATE, configuration.incorrectLoginUsername(), configuration.incorrectLoginPassword());
     }
 }

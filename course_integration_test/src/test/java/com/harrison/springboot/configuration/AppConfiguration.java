@@ -1,11 +1,19 @@
 package com.harrison.springboot.configuration;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.harrison.springboot.implementations.properties.AWSParameterStorePropertyLoader;
+import com.harrison.springboot.implementations.properties.LocalFilePropertyLoader;
+import com.harrison.springboot.interfaces.PropertyLoader;
 
 public final class AppConfiguration {
-    private final Properties properties = new Properties();
+    private final Map<String, String> propertyStorage = new HashMap<>();
+    private static final List<PropertyLoader> propertyLoaders = List.of(
+        new LocalFilePropertyLoader(),
+        new AWSParameterStorePropertyLoader()
+    );
     private static AppConfiguration instance = null;
 
     private AppConfiguration() {
@@ -27,26 +35,29 @@ public final class AppConfiguration {
     }
 
     public String loginUsername() {
-        return requiredProperty("app.valid.username");
+        return requiredProperty("app.username");
     }
 
     public String loginPassword() {
-        return requiredProperty("app.valid.password");
+        return requiredProperty("app.password");
+    }
+
+    public String incorrectLoginUsername() {
+        return requiredProperty("app.incorrect.username");
+    }
+
+    public String incorrectLoginPassword() {
+        return requiredProperty("app.incorrect.password");
     }
 
     private void loadProperties() {
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("app.properties")) {
-            if (input == null) {
-                throw new IllegalStateException("No se encontró app.properties en el classpath de pruebas");
-            }
-            properties.load(input);
-        } catch (IOException exception) {
-            throw new IllegalStateException("No fue posible leer app.properties", exception);
+        for (PropertyLoader loader : propertyLoaders) {
+            loader.loadProperties(propertyStorage);
         }
     }
 
     private String requiredProperty(String key) {
-        String value = properties.getProperty(key);
+        String value = propertyStorage.getOrDefault(key, "");
         if (value == null || value.isBlank()) {
             throw new IllegalStateException("Falta la propiedad obligatoria: " + key);
         }

@@ -13,3 +13,8 @@ Feature: Verificación de status
     Scenario: Verificar que el sistema no deja iniciar sesión con credenciales incorrectas
         When intento realizar login con nombre de usuario 'adminsss' y contrasena 'kkkkkk'
         Then verifico que el login ha sido fallido
+
+    @LoginPropertiesTest
+    Scenario: Verificar que el sistema no deja iniciar sesión con credenciales incorrectas usando propiedades
+        When intento realizar login con nombre de usuario y contrasena incorrectos
+        Then verifico que el login ha sido fallido

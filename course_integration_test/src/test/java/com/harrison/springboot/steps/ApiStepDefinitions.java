@@ -51,6 +51,11 @@ public class ApiStepDefinitions {
         baseApi.tryLogin(formatted);
     }
 
+    @When("intento realizar login con nombre de usuario y contrasena incorrectos")
+    public void tryLoginWithIncorrectProperties() {
+        baseApi.tryLogin(baseApi.buildBodyWithIncorrectProperties());
+    }
+
     @Then("verifico que el login ha sido fallido")
     public void verifyFailedLogin() {
         SerenityRest.lastResponse()
