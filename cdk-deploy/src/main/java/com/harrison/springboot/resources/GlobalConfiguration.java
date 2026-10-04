@@ -18,6 +18,7 @@ public abstract class GlobalConfiguration {
     public static final String BASE_RESOURCES_ALB_SG_EXPORT_NAME = "SpringBootCourseAlbSecurityGroupId";
     public static final String BASE_RESOURCES_ECS_SG_EXPORT_NAME = "SpringBootCourseEcsSecurityGroupId";
     public static final String BASE_RESOURCES_RDS_CONNECTION_STRING = "SpringBootCourseRdsConnectionString";
+    public static final String BASE_RESOURCES_RDS_SECRET_ARN = "SpringBootCourseRdsSecretArn";
 
     public static String getPublicKeyPath() throws IOException {
         return Files.readString(Path.of(System.getProperty("user.home"), ".ssh", "floci-ec2.pub")).trim();

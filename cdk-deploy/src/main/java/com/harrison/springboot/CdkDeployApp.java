@@ -9,6 +9,8 @@ import software.amazon.awscdk.Validations;
 import com.harrison.springboot.models.ECSServiceStackProps;
 import com.harrison.springboot.stacks.BaseResourcesStack;
 import com.harrison.springboot.stacks.ECSServiceStack;
+import com.harrison.springboot.stacks.IntegrationTestStack;
+import com.harrison.springboot.stacks.SecretsStack;
 
 public class CdkDeployApp {
     public static void main(final String[] args) {
@@ -34,6 +36,7 @@ public class CdkDeployApp {
                 .build();
 
         try {
+            new SecretsStack(app, "SecretsStack");
             BaseResourcesStack baseResourcesStack = new BaseResourcesStack(app, "BaseResourcesStack",
                     generalStackProps);
 
@@ -41,9 +44,10 @@ public class CdkDeployApp {
                     baseResourcesStack.getPrivateSubnets(),
                     // baseResourcesStack.getLbSecurityGroup(),
                     // baseResourcesStack.getDbConnectionString(),
-                    BaseResourcesStack.DB_USERNAME,
+                    "",
                     baseResourcesStack.getDbPassword());
             new ECSServiceStack(app, "ECSServiceStack", generalStackProps, ecsStackServiceProps);
+            new IntegrationTestStack(app, "IntegrationTestStack");
         } catch (Exception e) {
             throw new RuntimeException("Failed to create CDK stacks", e);
         }

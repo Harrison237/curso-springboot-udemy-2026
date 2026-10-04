@@ -36,8 +36,15 @@ import software.amazon.awscdk.services.elasticloadbalancingv2.ApplicationTargetG
 import software.amazon.awscdk.services.elasticloadbalancingv2.BaseApplicationListenerProps;
 import software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck;
 import software.amazon.awscdk.services.elasticloadbalancingv2.TargetType;
+import software.amazon.awscdk.services.iam.Effect;
+import software.amazon.awscdk.services.iam.Policy;
+import software.amazon.awscdk.services.iam.PolicyStatement;
+import software.amazon.awscdk.services.iam.Role;
+import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.amazon.awscdk.services.logs.RetentionDays;
+import software.amazon.awscdk.services.secretsmanager.ISecret;
+import software.amazon.awscdk.services.secretsmanager.Secret;
 import software.constructs.Construct;
 
 public class ECSServiceStack extends Stack {
@@ -48,6 +55,7 @@ public class ECSServiceStack extends Stack {
         String albSecurityGroupId = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_ALB_SG_EXPORT_NAME);
         String ecsSecurityGroupId = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_ECS_SG_EXPORT_NAME);
         String rdsEndpoint = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_RDS_CONNECTION_STRING);
+        String rdsSecretArn = Fn.importValue(GlobalConfiguration.BASE_RESOURCES_RDS_SECRET_ARN);
 
         IVpc globalVpc = GlobalResources.getDefaultVPC(this);
         ISecurityGroup albSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedAlbSecurityGroup",
@@ -56,16 +64,36 @@ public class ECSServiceStack extends Stack {
                 ecsSecurityGroupId);
         IRepository repository = Repository.fromRepositoryName(this, "ImportedSpringBootCourseECRRepository",
                 "springboot-course-repository");
+        ISecret rdsDBPasswordSecret = Secret.fromSecretCompleteArn(this, "ImportedRdsDBPasswordSecret", rdsSecretArn);
 
         Cluster cluster = Cluster.Builder.create(this, "SpringBootCourseECSCluster")
                 .clusterName("springboot-course-cluster")
                 .vpc(globalVpc)
                 .build();
 
+        Role ecsTaskRole = Role.Builder.create(this, "SpringBootCourseECSTaskRole")
+                .roleName("springboot-course-ecs-task-role")
+                .description("Role to allow ECS Tasks access several resources in the account.")
+                .assumedBy(ServicePrincipal.Builder.create("ecs-tasks.amazonaws.com").build())
+                .build();
+
+        Policy.Builder.create(this, "SpringBootCourseECSTaskRdsSecretPolicy")
+                .policyName("springboot-course-task-rds-secret-policy")
+                .statements(List.of(
+                        PolicyStatement.Builder.create()
+                                .effect(Effect.ALLOW)
+                                .actions(List.of("secretsmanager:GetSecretValue"))
+                                .resources(List.of(rdsSecretArn))
+                                .build()))
+                .roles(List.of(ecsTaskRole))
+                .build();
+
         FargateTaskDefinition taskDefinition = FargateTaskDefinition.Builder
                 .create(this, "SpringBootCourseTaskDefinition")
                 .cpu(512)
+                .taskRole(ecsTaskRole)
                 .memoryLimitMiB(1024)
+                .taskRole(null)
                 .build();
 
         LogGroup ecsLogGroup = LogGroup.Builder.create(this, "SpringBootCourseEcsTaskLogGroup")
@@ -83,9 +111,14 @@ public class ECSServiceStack extends Stack {
                 ContainerDefinitionOptions.builder()
                         .image(ContainerImage.fromEcrRepository(repository, "v2"))
                         .environment(Map.of(
-                                "SPRING_DATASOURCE_URL", rdsEndpoint,
-                                "SPRING_DATASOURCE_USERNAME", specificProps.databaseUsername(),
-                                "SPRING_DATASOURCE_PASSWORD", specificProps.databasePassword()))
+                                "SPRING_DATASOURCE_URL", rdsEndpoint))
+                        .secrets(Map.of(
+                                "SPRING_DATASOURCE_USERNAME",
+                                software.amazon.awscdk.services.ecs.Secret.fromSecretsManager(rdsDBPasswordSecret,
+                                        "username"),
+                                "SPRING_DATASOURCE_PASSWORD",
+                                software.amazon.awscdk.services.ecs.Secret.fromSecretsManager(rdsDBPasswordSecret,
+                                        "password")))
                         .logging(logDriver)
                         .build());
 

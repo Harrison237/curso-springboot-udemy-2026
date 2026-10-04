@@ -173,6 +173,11 @@ public class BaseResourcesStack extends Stack {
                 privateSubnetB);
 
         String rdsPort = Token.asString(cluster.getClusterEndpoint().getPort());
+        dbConnectionString = String.format(
+                "jdbc:mysql://%s:%s/%s",
+                cluster.getClusterEndpoint().getHostname(),
+                rdsPort,
+                "db_jpa_crud?createDatabaseIfNotExist=true");
 
         CfnOutput.Builder.create(this, "AlbSecurityGroupId")
                 .value(albSg.getSecurityGroupId())
@@ -185,18 +190,10 @@ public class BaseResourcesStack extends Stack {
                 .build();
 
         CfnOutput.Builder.create(this, "RdsEndpoint")
-                .value(String.format(
-                        "jdbc:mysql://%s:%s/%s",
-                        cluster.getClusterEndpoint().getHostname(),
-                        rdsPort,
-                        "db_jpa_crud?createDatabaseIfNotExist=true"))
+                .value(dbConnectionString)
                 .exportName(GlobalConfiguration.BASE_RESOURCES_RDS_CONNECTION_STRING)
                 .build();
 
         lbSecurityGroup = albSg;
-        dbConnectionString = String.format(
-                "jdbc:mysql://%s:%s",
-                cluster.getClusterEndpoint().getHostname(),
-                "3306");
     }
 }
